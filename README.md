@@ -1,4 +1,4 @@
-# Chatbot FAQ Magang — WhatsApp & Telegram, Deploy ke Vercel (tanpa Langflow)
+# Chatbot FAQ Magang — WhatsApp & Telegram, Deploy ke Vercel
 
 Satu project, dua channel: **WhatsApp** dan **Telegram**, sama-sama pakai FAQ dan otak AI yang sama
 (**Gemini 3.5 Flash-Lite**), dideploy sebagai serverless functions di Vercel.
