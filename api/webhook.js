@@ -26,23 +26,20 @@ export default async function handler(req, res) {
 
   // --- 2) Terima pesan masuk ---
   if (req.method === 'POST') {
-    // Balas cepat ke Meta dulu (wajib < beberapa detik), proses tetap jalan di bawah.
-    res.status(200).send('OK');
-
     try {
       const entry = req.body?.entry?.[0];
       const change = entry?.changes?.[0];
       const value = change?.value;
       const message = value?.messages?.[0];
 
-      if (!message) return; // event status (delivered/read), bukan pesan baru — abaikan
+      if (!message) return res.status(200).send('OK'); // event status (delivered/read), bukan pesan baru — abaikan
 
       const from = message.from;
       const text = message.text?.body;
 
       if (!text) {
         await sendWhatsAppMessage(from, 'Maaf, saat ini bot hanya bisa membaca pesan berupa teks.');
-        return;
+        return res.status(200).send('OK');
       }
 
       console.log(`📩 Pesan dari ${from}: ${text}`);
@@ -57,10 +54,12 @@ export default async function handler(req, res) {
 
       await sendWhatsAppMessage(from, reply);
       console.log(`✅ Terjawab untuk ${from}`);
+
+      return res.status(200).send('OK');
     } catch (err) {
       console.error('❌ Error memproses webhook:', err.response?.data || err.message);
+      return res.status(200).send('OK'); // tetap balas 200 supaya Meta tidak retry terus-menerus
     }
-    return;
   }
 
   res.status(405).send('Method Not Allowed');

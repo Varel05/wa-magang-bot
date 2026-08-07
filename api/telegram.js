@@ -20,21 +20,18 @@ export default async function handler(req, res) {
     }
   }
 
-  // Balas cepat ke Telegram dulu, proses tetap lanjut di bawah.
-  res.status(200).send('OK');
-
   try {
     const message = req.body?.message;
-    if (!message) return; // bisa jadi update jenis lain (edited_message, dll) — abaikan
+    if (!message) return res.status(200).send('OK'); // bisa jadi update jenis lain — abaikan
 
     const chatId = message.chat?.id;
     const text = message.text;
 
-    if (!chatId) return;
+    if (!chatId) return res.status(200).send('OK');
 
     if (!text) {
       await sendTelegramMessage(TELEGRAM_BOT_TOKEN, chatId, 'Maaf, saat ini bot hanya bisa membaca pesan berupa teks.');
-      return;
+      return res.status(200).send('OK');
     }
 
     console.log(`📩 [Telegram] Pesan dari ${chatId}: ${text}`);
@@ -51,7 +48,10 @@ export default async function handler(req, res) {
 
     await sendTelegramMessage(TELEGRAM_BOT_TOKEN, chatId, reply);
     console.log(`✅ [Telegram] Terjawab untuk ${chatId}`);
+
+    return res.status(200).send('OK');
   } catch (err) {
     console.error('❌ Error memproses webhook Telegram:', err.response?.data || err.message);
+    return res.status(200).send('OK'); // tetap balas 200 supaya Telegram tidak retry terus-menerus
   }
 }
