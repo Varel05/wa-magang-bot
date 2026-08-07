@@ -1,0 +1,8 @@
+# Ignore environment files
+.env
+
+# Ignore authentication session folder
+auth_session/
+
+# Ignore Node.js dependencies
+node_modules/

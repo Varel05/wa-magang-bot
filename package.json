@@ -1,0 +1,17 @@
+{
+  "name": "wa-magang-bot",
+  "version": "1.0.0",
+  "description": "Chatbot WhatsApp untuk menjawab calon pemagang, terhubung ke Langflow",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.9",
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "pino": "^9.4.0",
+    "qrcode-terminal": "^0.12.0"
+  }
+}
