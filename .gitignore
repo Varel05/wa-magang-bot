@@ -1,8 +1,29 @@
-# Ignore environment files
+# Rahasia / kredensial — JANGAN pernah commit file ini
 .env
+.env.local
+.env.*.local
 
-# Ignore authentication session folder
-auth_session/
-
-# Ignore Node.js dependencies
+# Dependencies
 node_modules/
+
+# Output build Vercel/Next (kalau ada)
+.vercel
+.output/
+dist/
+
+# Log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# File sistem OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Sesi/auth WhatsApp (kalau Anda masih menyimpan versi Baileys lokal)
+auth_session/
