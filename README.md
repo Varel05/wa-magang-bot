@@ -1,67 +1,107 @@
-# Chatbot WhatsApp — FAQ Magang
+# Chatbot FAQ Magang — WhatsApp & Telegram, Deploy ke Vercel (tanpa Langflow)
 
-Bot ini menjembatani WhatsApp dengan flow AI yang sudah Anda buat di **Langflow**.
-Alur kerja: `Pesan WhatsApp masuk → dikirim ke Langflow → jawaban AI dikirim balik ke WhatsApp`.
+Satu project, dua channel: **WhatsApp** dan **Telegram**, sama-sama pakai FAQ dan otak AI yang sama
+(**Gemini 3.5 Flash-Lite**), dideploy sebagai serverless functions di Vercel.
 
-## 1. Persiapan
+```
+wa-vercel-bot/
+├── api/
+│   ├── webhook.js        ← endpoint WhatsApp  (https://domain-anda/api/webhook)
+│   └── telegram.js       ← endpoint Telegram  (https://domain-anda/api/telegram)
+├── lib/
+│   ├── askGemini.js       ← pemanggil Gemini API (dipakai kedua channel)
+│   ├── telegram.js        ← helper kirim pesan Telegram
+│   └── faq.js             ← FAQ MAGANG + system prompt (dipakai kedua channel)
+├── package.json
+└── .env.example
+```
 
-### a. Jalankan Langflow dan catat info flow Anda
-1. Pastikan Langflow jalan (biasanya di `http://localhost:7860`).
-2. Buka flow yang sudah Anda buat, klik **API** di pojok kanan atas untuk melihat contoh request.
-3. Catat:
-   - **Flow ID** (ada di URL request, formatnya UUID panjang)
-   - **API Key** (jika Anda mengaktifkan autentikasi di Langflow; kalau tidak, boleh dikosongkan)
+## 1. Isi FAQ magang
 
-### b. Install dependencies
+Buka `lib/faq.js`, ganti isi `FAQ_MAGANG` dengan data program magang Anda yang sebenarnya
+(syarat, jadwal, dokumen, alur pendaftaran, dll). Semakin lengkap & rapi, semakin akurat jawaban bot.
+
+> Kirimkan FAQ Anda ke saya kapan saja kalau mau saya bantu susun/rapikan ke format ini.
+
+## 2. Dapatkan Gemini API key
+
+1. Buka [aistudio.google.com/apikey](https://aistudio.google.com/apikey) → buat API key baru.
+2. Simpan key-nya (dipakai di langkah 4).
+
+## 3. Push project ini ke GitHub
+
 ```bash
-npm install
+cd wa-vercel-bot
+git init
+git add .
+git commit -m "init wa magang bot"
+git branch -M main
+git remote add origin <url-repo-github-anda>
+git push -u origin main
 ```
 
-### c. Konfigurasi
+## 4. Deploy ke Vercel
+
+1. Buka [vercel.com](https://vercel.com) → **Add New Project** → import repo GitHub di atas.
+2. Sebelum klik Deploy, buka **Environment Variables**, isi:
+   - `WHATSAPP_ACCESS_TOKEN`
+   - `WHATSAPP_PHONE_NUMBER_ID`
+   - `WHATSAPP_VERIFY_TOKEN` (bebas, buat sendiri)
+   - `GEMINI_API_KEY`
+   - `TELEGRAM_BOT_TOKEN`
+   - `TELEGRAM_WEBHOOK_SECRET` (bebas, buat sendiri)
+3. Klik **Deploy**. Setelah selesai, Anda dapat domain permanen, misalnya:
+   ```
+   https://wa-magang-bot.vercel.app
+   ```
+
+## 5. Daftarkan webhook ke Meta
+
+Di dashboard app Meta for Developers → **WhatsApp** → **Configuration** → **Webhook**:
+- **Callback URL**: `https://wa-magang-bot.vercel.app/api/webhook`
+- **Verify token**: samakan dengan `WHATSAPP_VERIFY_TOKEN` di env Vercel
+- **Verify and Save**, lalu subscribe ke field `messages`
+
+Karena domain Vercel ini permanen, langkah ini **hanya perlu dilakukan sekali** — beda dengan ngrok yang berubah tiap restart.
+
+## 6. Daftarkan webhook ke Telegram
+
+### a. Buat bot & ambil token
+1. Buka Telegram, chat ke **[@BotFather](https://t.me/BotFather)**.
+2. Kirim `/newbot`, ikuti instruksinya (kasih nama & username bot).
+3. BotFather akan kasih **token**, formatnya seperti `123456789:AAExxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`. Ini nilai untuk `TELEGRAM_BOT_TOKEN`.
+
+### b. Set webhook (setelah project sudah dideploy ke Vercel)
+Jalankan perintah ini sekali saja (ganti `<TOKEN>`, `<DOMAIN>`, dan `<SECRET>` sesuai punya Anda — `<SECRET>` harus sama persis dengan `TELEGRAM_WEBHOOK_SECRET` di env Vercel):
+
 ```bash
-cp .env.example .env
-```
-Lalu edit `.env`, isi:
-```
-LANGFLOW_API_URL=http://localhost:7860/api/v1/run/FLOW_ID_ANDA
-LANGFLOW_API_KEY=isi_jika_ada
+curl -X POST "https://api.telegram.org/bot<TOKEN>/setWebhook" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://<DOMAIN>/api/telegram",
+    "secret_token": "<SECRET>"
+  }'
 ```
 
-## 2. Jalankan bot
+Contoh nyata:
 ```bash
-npm start
+curl -X POST "https://api.telegram.org/bot123456789:AAExxxx/setWebhook" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://wa-magang-bot.vercel.app/api/telegram", "secret_token": "magangbot_telegram_secret123"}'
 ```
-- Akan muncul **QR code** di terminal.
-- Buka WhatsApp di HP → **Perangkat Tertaut** → **Tautkan Perangkat** → scan QR tersebut.
-- Setelah terhubung, akan muncul log `✅ Bot WhatsApp terhubung`.
 
-Sesi login tersimpan di folder `auth_session/`, jadi tidak perlu scan ulang setiap kali restart (selama tidak logout dari HP).
+Kalau berhasil, responnya: `{"ok":true,"result":true,"description":"Webhook was set"}`.
 
-## 3. Cara kerja
+### c. Test
+Cari bot Anda di Telegram (pakai username yang dibuat di BotFather), kirim pesan apa saja. Cek log realtime di **Vercel Dashboard → project Anda → tab "Logs"**.
 
-- Bot **hanya merespons chat pribadi** (grup diabaikan) — ini standar untuk bot layanan FAQ.
-- Setiap nomor WhatsApp pengirim dipakai sebagai `session_id` ke Langflow, supaya Langflow bisa mengingat konteks per-orang (kalau flow Anda menggunakan memory/session).
-- Kalau Langflow error atau timeout, bot mengirim pesan fallback otomatis, tidak crash.
+## 7. Test WhatsApp
 
-## 4. Memasukkan data FAQ magang ke Langflow
+Kirim WhatsApp dari nomor test yang sudah diverifikasi di dashboard Meta. Cek log realtime di:
+**Vercel Dashboard → project Anda → tab "Logs"**.
 
-Karena logika AI ada di Langflow, cara terbaik memasukkan FAQ (syarat, jadwal, dokumen, dll) adalah **di dalam flow itu sendiri**, misalnya:
-- Ditempel sebagai teks di komponen **Prompt/System Message**, atau
-- Diunggah sebagai dokumen ke komponen **Vector Store / File** kalau Anda pakai pendekatan RAG.
+## 8. Batasan versi ini (dan cara upgrade-nya nanti)
 
-Silakan kirimkan daftar FAQ Anda (boleh teks langsung, atau upload file) — saya bisa bantu:
-1. Merapikannya jadi format yang enak dipakai di system prompt Langflow, ATAU
-2. Menyusunnya jadi dokumen (misalnya `.txt`/`.csv`) siap upload ke vector store.
-
-## 5. Menyesuaikan format respons Langflow
-
-Struktur JSON respons Langflow bisa sedikit berbeda tergantung komponen output di flow Anda.
-`index.js` sudah mencoba beberapa path umum. Kalau balasan bot muncul sebagai pesan fallback terus:
-1. Jalankan bot, kirim 1 pesan test.
-2. Lihat log di terminal — akan tercetak JSON lengkap dari Langflow.
-3. Kirimkan JSON tersebut ke saya, nanti saya sesuaikan path pengambilan teksnya di `askLangflow()`.
-
-## 6. Catatan penting
-
-- Bot ini pakai **Baileys** (library tidak resmi, seperti WhatsApp Web) — cocok untuk prototype/skala kecil tanpa perlu verifikasi Meta Business.
-- Untuk pemakaian resmi/skala besar ke depan, bisa migrasi ke **WhatsApp Cloud API** resmi dari Meta — beri tahu saya kalau sudah siap, saya bantu adaptasi kodenya.
+- **Tidak ada memory antar pesan** — tiap pesan dijawab berdiri sendiri tanpa mengingat percakapan sebelumnya. Kalau perlu, tambahkan penyimpanan riwayat chat per nomor (misalnya pakai **Vercel KV** atau **Upstash Redis**) — beri tahu saya kalau sudah siap, saya bantu tambahkan.
+- **Token WhatsApp temporary** (kalau masih pakai token 24 jam dari testing) akan expired — untuk pemakaian tetap, buat **permanent token** via System User di Meta Business Suite.
+- Model AI yang dipakai (`gemini-3.5-flash-lite`) dipilih karena cepat & murah, cocok untuk FAQ bervolume tinggi. Kalau butuh jawaban yang lebih "pintar" untuk pertanyaan kompleks, bisa ganti model di `lib/askGemini.js` (misalnya ke `gemini-3.6-flash`).
