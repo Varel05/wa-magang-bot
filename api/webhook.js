@@ -1,4 +1,6 @@
 import { askGemini } from '../lib/askGemini.js';
+import { isFirstMessage } from '../lib/seenStore.js';
+import { GREETING_MESSAGE } from '../lib/faq.js';
 
 const {
   WHATSAPP_ACCESS_TOKEN,
@@ -43,6 +45,14 @@ export default async function handler(req, res) {
       }
 
       console.log(`📩 Pesan dari ${from}: ${text}`);
+
+      // Kalau ini pesan pertama dari nomor ini, kirim perkenalan dulu — belum jawab pertanyaannya.
+      const firstTime = await isFirstMessage('whatsapp', from);
+      if (firstTime) {
+        await sendWhatsAppMessage(from, GREETING_MESSAGE);
+        console.log(`👋 Perkenalan terkirim untuk ${from}`);
+        return res.status(200).send('OK');
+      }
 
       let reply;
       try {

@@ -1,4 +1,4 @@
-# Chatbot FAQ Magang — WhatsApp & Telegram, Deploy ke Vercel
+# Chatbot FAQ Magang — WhatsApp & Telegram, Deploy ke Vercel (tanpa Langflow)
 
 Satu project, dua channel: **WhatsApp** dan **Telegram**, sama-sama pakai FAQ dan otak AI yang sama
 (**Gemini 3.5 Flash-Lite**), dideploy sebagai serverless functions di Vercel.
@@ -11,7 +11,8 @@ wa-vercel-bot/
 ├── lib/
 │   ├── askGemini.js       ← pemanggil Gemini API (dipakai kedua channel)
 │   ├── telegram.js        ← helper kirim pesan Telegram
-│   └── faq.js             ← FAQ MAGANG + system prompt (dipakai kedua channel)
+│   ├── seenStore.js       ← deteksi "pesan pertama dari user ini" via Upstash Redis
+│   └── faq.js             ← FAQ MAGANG + pesan perkenalan + system prompt (dipakai kedua channel)
 ├── package.json
 └── .env.example
 ```
@@ -28,7 +29,17 @@ Buka `lib/faq.js`, ganti isi `FAQ_MAGANG` dengan data program magang Anda yang s
 1. Buka [aistudio.google.com/apikey](https://aistudio.google.com/apikey) → buat API key baru.
 2. Simpan key-nya (dipakai di langkah 4).
 
-## 3. Push project ini ke GitHub
+## 3. Buat database Upstash Redis (untuk fitur pesan perkenalan)
+
+Bot ini mengirim pesan perkenalan otomatis di chat pertama seseorang, lalu menjawab pertanyaan seperti biasa di pesan berikutnya. Untuk mengingat "siapa saja yang sudah pernah chat", dipakai Upstash Redis (gratis untuk skala FAQ bot).
+
+1. Buka [console.upstash.com](https://console.upstash.com) → **Create Database** (pilih region terdekat, mis. Singapore).
+2. Buka tab **REST API** di database yang baru dibuat.
+3. Salin nilai `UPSTASH_REDIS_REST_URL` dan `UPSTASH_REDIS_REST_TOKEN` (dipakai di langkah 5).
+
+> Kalau env ini belum diisi, bot tetap jalan normal — cuma fitur perkenalan otomatis nonaktif (langsung jawab pertanyaan seperti biasa).
+
+## 4. Push project ini ke GitHub
 
 ```bash
 cd wa-vercel-bot
@@ -40,7 +51,7 @@ git remote add origin <url-repo-github-anda>
 git push -u origin main
 ```
 
-## 4. Deploy ke Vercel
+## 5. Deploy ke Vercel
 
 1. Buka [vercel.com](https://vercel.com) → **Add New Project** → import repo GitHub di atas.
 2. Sebelum klik Deploy, buka **Environment Variables**, isi:
@@ -50,12 +61,14 @@ git push -u origin main
    - `GEMINI_API_KEY`
    - `TELEGRAM_BOT_TOKEN`
    - `TELEGRAM_WEBHOOK_SECRET` (bebas, buat sendiri)
+   - `UPSTASH_REDIS_REST_URL`
+   - `UPSTASH_REDIS_REST_TOKEN`
 3. Klik **Deploy**. Setelah selesai, Anda dapat domain permanen, misalnya:
    ```
    https://wa-magang-bot.vercel.app
    ```
 
-## 5. Daftarkan webhook ke Meta
+## 6. Daftarkan webhook ke Meta
 
 Di dashboard app Meta for Developers → **WhatsApp** → **Configuration** → **Webhook**:
 - **Callback URL**: `https://wa-magang-bot.vercel.app/api/webhook`
@@ -64,7 +77,7 @@ Di dashboard app Meta for Developers → **WhatsApp** → **Configuration** → 
 
 Karena domain Vercel ini permanen, langkah ini **hanya perlu dilakukan sekali** — beda dengan ngrok yang berubah tiap restart.
 
-## 6. Daftarkan webhook ke Telegram
+## 7. Daftarkan webhook ke Telegram
 
 ### a. Buat bot & ambil token
 1. Buka Telegram, chat ke **[@BotFather](https://t.me/BotFather)**.
@@ -95,13 +108,14 @@ Kalau berhasil, responnya: `{"ok":true,"result":true,"description":"Webhook was 
 ### c. Test
 Cari bot Anda di Telegram (pakai username yang dibuat di BotFather), kirim pesan apa saja. Cek log realtime di **Vercel Dashboard → project Anda → tab "Logs"**.
 
-## 7. Test WhatsApp
+## 8. Test WhatsApp
 
 Kirim WhatsApp dari nomor test yang sudah diverifikasi di dashboard Meta. Cek log realtime di:
 **Vercel Dashboard → project Anda → tab "Logs"**.
 
-## 8. Batasan versi ini (dan cara upgrade-nya nanti)
+## 9. Batasan versi ini (dan cara upgrade-nya nanti)
 
-- **Tidak ada memory antar pesan** — tiap pesan dijawab berdiri sendiri tanpa mengingat percakapan sebelumnya. Kalau perlu, tambahkan penyimpanan riwayat chat per nomor (misalnya pakai **Vercel KV** atau **Upstash Redis**) — beri tahu saya kalau sudah siap, saya bantu tambahkan.
+- **Tidak ada memory percakapan** (Gemini tidak mengingat isi chat sebelumnya, hanya status "sudah pernah chat atau belum" yang diingat lewat Upstash). Kalau butuh Gemini mengingat riwayat obrolan penuh, beri tahu saya, saya bantu tambahkan.
+- **Reset status "sudah pernah chat"**: kalau mau seseorang dapat pesan perkenalan lagi (misal untuk testing), hapus key `seen:whatsapp:<nomor>` atau `seen:telegram:<chatId>` di Upstash console (tab Data Browser).
 - **Token WhatsApp temporary** (kalau masih pakai token 24 jam dari testing) akan expired — untuk pemakaian tetap, buat **permanent token** via System User di Meta Business Suite.
 - Model AI yang dipakai (`gemini-3.5-flash-lite`) dipilih karena cepat & murah, cocok untuk FAQ bervolume tinggi. Kalau butuh jawaban yang lebih "pintar" untuk pertanyaan kompleks, bisa ganti model di `lib/askGemini.js` (misalnya ke `gemini-3.6-flash`).

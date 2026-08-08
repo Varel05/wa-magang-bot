@@ -1,5 +1,7 @@
 import { askGemini } from '../lib/askGemini.js';
 import { sendTelegramMessage, sendTelegramTyping } from '../lib/telegram.js';
+import { isFirstMessage } from '../lib/seenStore.js';
+import { GREETING_MESSAGE } from '../lib/faq.js';
 
 const { TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET } = process.env;
 
@@ -35,6 +37,14 @@ export default async function handler(req, res) {
     }
 
     console.log(`📩 [Telegram] Pesan dari ${chatId}: ${text}`);
+
+    // Kalau ini pesan pertama dari chat ini, kirim perkenalan dulu — belum jawab pertanyaannya.
+    const firstTime = await isFirstMessage('telegram', chatId);
+    if (firstTime) {
+      await sendTelegramMessage(TELEGRAM_BOT_TOKEN, chatId, GREETING_MESSAGE);
+      console.log(`👋 [Telegram] Perkenalan terkirim untuk ${chatId}`);
+      return res.status(200).send('OK');
+    }
 
     await sendTelegramTyping(TELEGRAM_BOT_TOKEN, chatId);
 
