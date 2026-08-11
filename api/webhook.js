@@ -49,8 +49,12 @@ export default async function handler(req, res) {
       // Kalau ini pesan pertama dari nomor ini, kirim perkenalan dulu — belum jawab pertanyaannya.
       const firstTime = await isFirstMessage('whatsapp', from);
       if (firstTime) {
-        await sendWhatsAppMessage(from, GREETING_MESSAGE);
-        console.log(`👋 Perkenalan terkirim untuk ${from}`);
+        try {
+          await sendWhatsAppMessage(from, GREETING_MESSAGE);
+          console.log(`👋 Perkenalan terkirim untuk ${from}`);
+        } catch (err) {
+          console.error(`❌ Gagal kirim perkenalan untuk ${from}`);
+        }
         return res.status(200).send('OK');
       }
 
@@ -93,5 +97,6 @@ async function sendWhatsAppMessage(to, text) {
   if (!res.ok) {
     const errBody = await res.text();
     console.error('❌ Gagal kirim pesan WhatsApp:', errBody);
+    throw new Error(`Gagal kirim pesan WhatsApp: ${errBody}`);
   }
 }
