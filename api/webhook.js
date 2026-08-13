@@ -3,6 +3,12 @@ import { isFirstMessage } from '../lib/seenStore.js';
 import { getHistory, appendToHistory } from '../lib/historyStore.js';
 import { GREETING_MESSAGE } from '../lib/faq.js';
 
+// Naikkan batas waktu eksekusi function (default Vercel Hobby cuma 10 detik) —
+// perlu lebih lega karena sekarang ada delay simulasi "mengetik" + panggilan Gemini.
+export const config = {
+  maxDuration: 30,
+};
+
 const {
   WHATSAPP_ACCESS_TOKEN,
   WHATSAPP_PHONE_NUMBER_ID,
@@ -10,6 +16,11 @@ const {
 } = process.env;
 
 const GRAPH_API_URL = `https://graph.facebook.com/v20.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
+
+// Durasi status "mengetik" = jumlah kata balasan / 5 detik, dibatasi biar aman dari timeout function.
+const TYPING_WORDS_PER_SECOND = 5;
+const MAX_TYPING_DELAY_SECONDS = 8; // sesuaikan kalau maxDuration function Vercel Anda lebih besar
+const MIN_TYPING_DELAY_SECONDS = 1;
 
 const FALLBACK_MESSAGE =
   'Maaf, sistem sedang gangguan sebentar. Silakan coba lagi dalam beberapa menit, atau hubungi admin magang secara langsung.';
@@ -48,6 +59,7 @@ export default async function handler(req, res) {
       if (!message) return res.status(200).send('OK'); // event lain yang tidak dikenali — abaikan
 
       const from = message.from;
+      const messageId = message.id;
       const text = message.text?.body;
 
       if (!text) {
@@ -57,10 +69,15 @@ export default async function handler(req, res) {
 
       console.log(`📩 Pesan dari ${from}: ${text}`);
 
+      // Tandai pesan sebagai dibaca + tampilkan status "mengetik" ke user.
+      // Ini yang bikin request tidak terasa "ngeblok" walau bot masih proses di belakang layar.
+      await markAsReadWithTyping(messageId);
+
       // Kalau ini pesan pertama dari nomor ini, kirim perkenalan dulu — belum jawab pertanyaannya.
       const firstTime = await isFirstMessage('whatsapp', from);
       if (firstTime) {
         try {
+          await delayForTyping(GREETING_MESSAGE);
           await sendWhatsAppMessage(from, GREETING_MESSAGE);
           console.log(`👋 Perkenalan terkirim untuk ${from}`);
         } catch (err) {
@@ -79,6 +96,7 @@ export default async function handler(req, res) {
         reply = FALLBACK_MESSAGE;
       }
 
+      await delayForTyping(reply);
       await sendWhatsAppMessage(from, reply);
       console.log(`✅ Terjawab untuk ${from}`);
 
@@ -90,6 +108,40 @@ export default async function handler(req, res) {
   }
 
   res.status(405).send('Method Not Allowed');
+}
+
+async function markAsReadWithTyping(messageId) {
+  try {
+    await fetch(GRAPH_API_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        status: 'read',
+        message_id: messageId,
+        typing_indicator: { type: 'text' },
+      }),
+    });
+  } catch (err) {
+    // Bukan fatal — kalau gagal, bot tetap lanjut jawab, cuma tanpa status "mengetik"
+    console.error('❌ Gagal kirim status mengetik:', err.message);
+  }
+}
+
+/**
+ * Tunggu sejenak sebelum kirim balasan, supaya terasa natural (bukan langsung "meledak" jawab).
+ * Durasi = jumlah kata / TYPING_WORDS_PER_SECOND, dibatasi MIN..MAX detik.
+ */
+async function delayForTyping(text) {
+  const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+  const seconds = Math.min(
+    Math.max(wordCount / TYPING_WORDS_PER_SECOND, MIN_TYPING_DELAY_SECONDS),
+    MAX_TYPING_DELAY_SECONDS
+  );
+  await new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 }
 
 async function sendWhatsAppMessage(to, text) {
