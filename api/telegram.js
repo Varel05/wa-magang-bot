@@ -1,6 +1,7 @@
 import { askGemini } from '../lib/askGemini.js';
 import { sendTelegramMessage, sendTelegramTyping } from '../lib/telegram.js';
 import { isFirstMessage } from '../lib/seenStore.js';
+import { getHistory, appendToHistory } from '../lib/historyStore.js';
 import { GREETING_MESSAGE } from '../lib/faq.js';
 
 const { TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET } = process.env;
@@ -50,7 +51,9 @@ export default async function handler(req, res) {
 
     let reply;
     try {
-      reply = await askGemini(text);
+      const history = await getHistory('telegram', chatId);
+      reply = await askGemini(text, history);
+      await appendToHistory('telegram', chatId, text, reply);
     } catch (err) {
       console.error('❌ Error dari Gemini API:', err.message);
       reply = FALLBACK_MESSAGE;

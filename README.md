@@ -12,6 +12,7 @@ wa-vercel-bot/
 │   ├── askGemini.js       ← pemanggil Gemini API (dipakai kedua channel)
 │   ├── telegram.js        ← helper kirim pesan Telegram
 │   ├── seenStore.js       ← deteksi "pesan pertama dari user ini" via Upstash Redis
+│   ├── historyStore.js    ← simpan & ambil riwayat percakapan per user via Upstash Redis
 │   └── faq.js             ← FAQ MAGANG + pesan perkenalan + system prompt (dipakai kedua channel)
 ├── package.json
 └── .env.example
@@ -29,9 +30,11 @@ Buka `lib/faq.js`, ganti isi `FAQ_MAGANG` dengan data program magang Anda yang s
 1. Buka [aistudio.google.com/apikey](https://aistudio.google.com/apikey) → buat API key baru.
 2. Simpan key-nya (dipakai di langkah 4).
 
-## 3. Buat database Upstash Redis (untuk fitur pesan perkenalan)
+## 3. Buat database Upstash Redis (untuk pesan perkenalan & riwayat percakapan)
 
-Bot ini mengirim pesan perkenalan otomatis di chat pertama seseorang, lalu menjawab pertanyaan seperti biasa di pesan berikutnya. Untuk mengingat "siapa saja yang sudah pernah chat", dipakai Upstash Redis (gratis untuk skala FAQ bot).
+Upstash Redis dipakai untuk dua hal: (1) mengingat "siapa saja yang sudah pernah chat" (fitur pesan perkenalan), dan (2) menyimpan riwayat percakapan tiap orang, supaya Gemini mengingat obrolan sebelumnya (bukan menjawab tiap pesan seperti orang baru terus). Gratis untuk skala FAQ bot.
+
+> Catatan: "Vercel KV" sudah tidak ada sejak akhir 2024 — Vercel memindahkan semua penggunanya ke Upstash Redis. Jadi Upstash Redis inilah penggantinya, bukan layanan terpisah.
 
 1. Buka [console.upstash.com](https://console.upstash.com) → **Create Database** (pilih region terdekat, mis. Singapore).
 2. Buka tab **REST API** di database yang baru dibuat.
@@ -115,7 +118,7 @@ Kirim WhatsApp dari nomor test yang sudah diverifikasi di dashboard Meta. Cek lo
 
 ## 9. Batasan versi ini (dan cara upgrade-nya nanti)
 
-- **Tidak ada memory percakapan** (Gemini tidak mengingat isi chat sebelumnya, hanya status "sudah pernah chat atau belum" yang diingat lewat Upstash). Kalau butuh Gemini mengingat riwayat obrolan penuh, beri tahu saya, saya bantu tambahkan.
-- **Reset status "sudah pernah chat"**: kalau mau seseorang dapat pesan perkenalan lagi (misal untuk testing), hapus key `seen:whatsapp:<nomor>` atau `seen:telegram:<chatId>` di Upstash console (tab Data Browser).
+- **Riwayat percakapan**: disimpan otomatis, maksimal 6 pasang pesan terakhir per orang (bisa diubah di `MAX_TURNS` pada `lib/historyStore.js`), dan otomatis "lupa" kalau tidak ada pesan baru selama 2 hari (`HISTORY_TTL_SECONDS`). Semakin besar MAX_TURNS, semakin "ingat banyak" tapi juga semakin banyak token yang dikirim ke Gemini tiap request (lebih mahal & sedikit lebih lambat).
+- **Reset riwayat/status seseorang** (misal untuk testing ulang dari nol): hapus key `seen:whatsapp:<nomor>`, `history:whatsapp:<nomor>` (atau versi `telegram:<chatId>`-nya) di Upstash console (tab Data Browser).
 - **Token WhatsApp temporary** (kalau masih pakai token 24 jam dari testing) akan expired — untuk pemakaian tetap, buat **permanent token** via System User di Meta Business Suite.
 - Model AI yang dipakai (`gemini-3.5-flash-lite`) dipilih karena cepat & murah, cocok untuk FAQ bervolume tinggi. Kalau butuh jawaban yang lebih "pintar" untuk pertanyaan kompleks, bisa ganti model di `lib/askGemini.js` (misalnya ke `gemini-3.6-flash`).
