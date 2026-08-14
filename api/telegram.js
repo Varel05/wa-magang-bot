@@ -2,6 +2,7 @@ import { askGemini } from '../lib/askGemini.js';
 import { sendTelegramMessage, sendTelegramTyping } from '../lib/telegram.js';
 import { isFirstMessage } from '../lib/seenStore.js';
 import { getHistory, appendToHistory } from '../lib/historyStore.js';
+import { pushNotification } from '../lib/notifyStore.js';
 import { GREETING_MESSAGE } from '../lib/faq.js';
 
 const { TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET } = process.env;
@@ -38,6 +39,13 @@ export default async function handler(req, res) {
     }
 
     console.log(`📩 [Telegram] Pesan dari ${chatId}: ${text}`);
+
+    // Catat notifikasi buat panel admin — tidak fatal kalau gagal, bot tetap lanjut balas.
+    try {
+      await pushNotification({ channel: 'telegram', contactId: chatId, preview: text });
+    } catch (err) {
+      console.error('❌ Gagal catat notifikasi:', err.message);
+    }
 
     // Kalau ini pesan pertama dari chat ini, kirim perkenalan dulu — belum jawab pertanyaannya.
     const firstTime = await isFirstMessage('telegram', chatId);

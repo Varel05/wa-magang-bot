@@ -181,6 +181,16 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .unread-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
   }
   .edit-name-btn {
     background: none;
@@ -236,6 +246,36 @@
   .toast { font-size: 13px; padding: 6px 0; min-height: 20px; }
   .toast.success { color: var(--wa-color); }
   .toast.error { color: var(--danger); }
+
+  /* ---------- Notifikasi ---------- */
+  #notifToastContainer {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 999;
+    width: 300px;
+  }
+  .notif-toast {
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    animation: notifIn 0.15s ease-out;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+  .notif-toast:hover { background: var(--panel); }
+  .notif-toast .notif-title { font-weight: 600; margin-bottom: 3px; }
+  .notif-toast .notif-preview { color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @keyframes notifIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
 </style>
 </head>
 <body>
@@ -250,6 +290,9 @@
       <p class="error-text" id="loginError"></p>
     </div>
   </div>
+
+  <!-- Toast notifikasi pesan baru -->
+  <div id="notifToastContainer"></div>
 
   <!-- APP -->
   <div id="app">
@@ -290,7 +333,8 @@
   </div>
 
 <script>
-  const state = { password: null, conversations: [], activeConv: null };
+  const state = { password: null, conversations: [], activeConv: null, lastNotifiedAt: 0, unreadCount: 0, unreadByConv: {} };
+  const ORIGINAL_TITLE = document.title;
 
   const $ = (sel) => document.querySelector(sel);
 
@@ -357,6 +401,79 @@
 
   function initApp() {
     loadConversations();
+    state.lastNotifiedAt = Date.now(); // cuma notifikasi pesan yang masuk SETELAH buka panel ini
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+    setInterval(pollNotifications, 6000);
+  }
+
+  async function pollNotifications() {
+    if (!state.password) return;
+    try {
+      const res = await apiFetch('/api/admin/notifications?since=' + state.lastNotifiedAt);
+      if (!res.ok) return;
+      const data = await res.json();
+      const notifications = data.notifications || [];
+      if (!notifications.length) return;
+
+      notifications.forEach(handleIncomingNotification);
+      state.lastNotifiedAt = Math.max(...notifications.map((n) => n.timestamp));
+    } catch (err) {
+      // polling gagal sesekali bukan masalah besar — coba lagi di interval berikutnya
+    }
+  }
+
+  function handleIncomingNotification(notif) {
+    const conv = state.conversations.find((c) => c.channel === notif.channel && c.id === String(notif.contactId));
+    const label = conv && conv.name ? conv.name : notif.contactId;
+
+    // Tandai unread di daftar percakapan (kecuali kalau percakapan itu sedang dibuka)
+    const isCurrentlyOpen = state.activeConv && state.activeConv.channel === notif.channel && state.activeConv.id === String(notif.contactId);
+    if (!isCurrentlyOpen) {
+      const key = notif.channel + ':' + notif.contactId;
+      state.unreadByConv[key] = true;
+      state.unreadCount += 1;
+      updateTabTitle();
+    }
+
+    // Kalau kontaknya belum ada di daftar (chat pertama dari orang baru), muat ulang daftar
+    if (!conv) loadConversations();
+
+    renderConvList();
+    showToast(label, notif.preview, notif.channel, notif.contactId);
+    showBrowserNotification(label, notif.preview);
+  }
+
+  function updateTabTitle() {
+    document.title = state.unreadCount > 0 ? '(' + state.unreadCount + ') ' + ORIGINAL_TITLE : ORIGINAL_TITLE;
+  }
+
+  function showToast(title, preview, channel, contactId) {
+    const container = $('#notifToastContainer');
+    const el = document.createElement('div');
+    el.className = 'notif-toast';
+    el.innerHTML =
+      '<div class="notif-title">' + (channel === 'whatsapp' ? '📱' : '✈️') + ' ' + title + '</div>' +
+      '<div class="notif-preview">' + preview + '</div>';
+    el.addEventListener('click', () => {
+      el.remove();
+      // Buka tab riwayat & pilih percakapan ini
+      document.querySelector('nav.tabs button[data-tab="riwayat"]').click();
+      const conv = state.conversations.find((c) => c.channel === channel && c.id === String(contactId));
+      if (conv) {
+        const itemEl = Array.from(document.querySelectorAll('.conv-item')).find((it) => it.dataset.key === channel + ':' + contactId);
+        if (itemEl) selectConv(conv, itemEl);
+      }
+    });
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 8000);
+  }
+
+  function showBrowserNotification(title, preview) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    if (document.visibilityState === 'visible') return; // tab lagi dibuka & terlihat, toast in-page sudah cukup
+    new Notification(title + ' — pesan baru', { body: preview });
   }
 
   // ---------- Riwayat Pesan ----------
@@ -377,10 +494,13 @@
     state.conversations.forEach((conv) => {
       const item = document.createElement('div');
       item.className = 'conv-item';
+      const key = conv.channel + ':' + conv.id;
+      item.dataset.key = key;
       const label = conv.name ? conv.name : conv.id;
+      const isUnread = Boolean(state.unreadByConv[key]);
       item.innerHTML =
         '<span class="chip ' + conv.channel + '">' + (conv.channel === 'whatsapp' ? 'WA' : 'TG') + '</span>' +
-        '<span class="conv-id" title="' + conv.id + '">' + label + '</span>' +
+        '<span class="conv-id" title="' + conv.id + '">' + (isUnread ? '<span class="unread-dot"></span>' : '') + label + '</span>' +
         '<button class="edit-name-btn">Ubah nama</button>';
       item.querySelector('.conv-id').addEventListener('click', () => selectConv(conv, item));
       item.querySelector('.chip').addEventListener('click', () => selectConv(conv, item));
@@ -427,6 +547,17 @@
     document.querySelectorAll('.conv-item').forEach((e) => e.classList.remove('active'));
     itemEl.classList.add('active');
     state.activeConv = conv;
+
+    // Bersihkan status unread untuk percakapan ini
+    const key = conv.channel + ':' + conv.id;
+    if (state.unreadByConv[key]) {
+      delete state.unreadByConv[key];
+      state.unreadCount = Math.max(0, state.unreadCount - 1);
+      updateTabTitle();
+      renderConvList();
+      itemEl = document.querySelector('.conv-item[data-key="' + key + '"]');
+      if (itemEl) itemEl.classList.add('active');
+    }
 
     $('#chatPanel').innerHTML = '<div class="empty-state">Memuat riwayat…</div>';
 

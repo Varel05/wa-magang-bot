@@ -1,6 +1,7 @@
 import { askGemini } from '../lib/askGemini.js';
 import { isFirstMessage } from '../lib/seenStore.js';
 import { getHistory, appendToHistory } from '../lib/historyStore.js';
+import { pushNotification } from '../lib/notifyStore.js';
 import { GREETING_MESSAGE } from '../lib/faq.js';
 
 // Naikkan batas waktu eksekusi function (default Vercel Hobby cuma 10 detik) —
@@ -68,6 +69,13 @@ export default async function handler(req, res) {
       }
 
       console.log(`📩 Pesan dari ${from}: ${text}`);
+
+      // Catat notifikasi buat panel admin — tidak fatal kalau gagal, bot tetap lanjut balas.
+      try {
+        await pushNotification({ channel: 'whatsapp', contactId: from, preview: text });
+      } catch (err) {
+        console.error('❌ Gagal catat notifikasi:', err.message);
+      }
 
       // Tandai pesan sebagai dibaca + tampilkan status "mengetik" ke user.
       // Ini yang bikin request tidak terasa "ngeblok" walau bot masih proses di belakang layar.

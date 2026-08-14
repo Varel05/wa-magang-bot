@@ -9,10 +9,11 @@ wa-vercel-bot/
 │   ├── webhook.js         ← endpoint WhatsApp  (https://domain-anda/api/webhook)
 │   ├── telegram.js        ← endpoint Telegram  (https://domain-anda/api/telegram)
 │   └── admin/
-│       ├── users.js       ← API: daftar percakapan + nama kontak (dipakai halaman /admin)
-│       ├── history.js     ← API: riwayat satu percakapan
-│       ├── contact.js     ← API: simpan/ubah nama panggilan kontak
-│       └── faq.js         ← API: baca & simpan FAQ custom
+│       ├── users.js         ← API: daftar percakapan + nama kontak (dipakai halaman /admin)
+│       ├── history.js       ← API: riwayat satu percakapan
+│       ├── contact.js       ← API: simpan/ubah nama panggilan kontak
+│       ├── notifications.js ← API: cek pesan baru masuk sejak waktu tertentu (polling)
+│       └── faq.js           ← API: baca & simpan FAQ custom
 ├── lib/
 │   ├── askGemini.js       ← pemanggil Gemini API (dipakai kedua channel)
 │   ├── telegram.js        ← helper kirim pesan Telegram
@@ -20,6 +21,7 @@ wa-vercel-bot/
 │   ├── historyStore.js    ← simpan, ambil, & list riwayat percakapan via Upstash Redis
 │   ├── faqStore.js        ← simpan & ambil FAQ custom via Upstash Redis
 │   ├── contactStore.js    ← simpan & ambil nama panggilan kontak via Upstash Redis
+│   ├── notifyStore.js     ← catat & ambil log pesan baru masuk via Upstash Redis (buat notifikasi)
 │   ├── adminAuth.js       ← cek password admin di tiap request /api/admin/*
 │   └── faq.js             ← FAQ default + pesan perkenalan + system prompt builder
 ├── public/
@@ -131,6 +133,8 @@ Kirim WhatsApp dari nomor test yang sudah diverifikasi di dashboard Meta. Cek lo
 ## 9. Pakai panel admin (riwayat pesan & edit FAQ)
 
 Buka `https://wa-magang-bot.vercel.app/admin` di browser. Masukkan password yang sama dengan `ADMIN_PASSWORD` di env Vercel.
+
+**Notifikasi pesan baru**: selama halaman `/admin` terbuka, browser akan menampilkan notifikasi (izin browser akan diminta saat pertama buka halaman) tiap ada pesan baru masuk dari WhatsApp maupun Telegram — juga muncul sebagai toast di dalam halaman dan badge angka di judul tab. Klik notifikasinya untuk langsung membuka percakapan terkait. Kalau tab sedang aktif dilihat, cukup toast saja yang muncul (tidak dobel dengan notifikasi native browser).
 
 **Tab "Riwayat Pesan"**: daftar semua orang yang pernah chat (WhatsApp & Telegram jadi satu daftar), klik salah satu untuk lihat isi percakapannya. Klik ikon ✏️ di sebelah nomor/ID untuk kasih nama panggilan (mis. "Budi - UGM") supaya lebih gampang dikenali daripada nomor mentah — nama ini cuma untuk Anda di panel admin, tidak memengaruhi cara bot membalas.
 
