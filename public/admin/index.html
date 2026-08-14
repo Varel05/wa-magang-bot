@@ -154,9 +154,9 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 14px 20px;
+    padding: 14px 16px 14px 20px;
     border-bottom: 1px solid var(--border);
-    cursor: pointer;
+    cursor: default;
   }
   .conv-item:hover { background: var(--panel); }
   .conv-item.active { background: var(--panel-raised); }
@@ -168,10 +168,30 @@
     padding: 2px 7px;
     border-radius: 4px;
     flex-shrink: 0;
+    cursor: pointer;
   }
   .chip.whatsapp { background: rgba(61,220,132,0.15); color: var(--wa-color); }
   .chip.telegram { background: rgba(77,171,247,0.15); color: var(--tg-color); }
-  .conv-id { font-family: var(--font-mono); font-size: 13px; color: var(--text); }
+  .conv-id {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .edit-name-btn {
+    background: none;
+    padding: 4px 6px;
+    font-size: 13px;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+  .conv-item:hover .edit-name-btn { opacity: 0.7; }
+  .edit-name-btn:hover { opacity: 1 !important; }
 
   #chatPanel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
   #chatHeader {
@@ -355,10 +375,50 @@
     state.conversations.forEach((conv) => {
       const item = document.createElement('div');
       item.className = 'conv-item';
-      item.innerHTML = '<span class="chip ' + conv.channel + '">' + (conv.channel === 'whatsapp' ? 'WA' : 'TG') + '</span><span class="conv-id">' + conv.id + '</span>';
-      item.addEventListener('click', () => selectConv(conv, item));
+      const label = conv.name ? conv.name : conv.id;
+      item.innerHTML =
+        '<span class="chip ' + conv.channel + '">' + (conv.channel === 'whatsapp' ? 'WA' : 'TG') + '</span>' +
+        '<span class="conv-id" title="' + conv.id + '">' + label + '</span>' +
+        '<button class="edit-name-btn" title="Ubah nama">✏️</button>';
+      item.querySelector('.conv-id').addEventListener('click', () => selectConv(conv, item));
+      item.querySelector('.chip').addEventListener('click', () => selectConv(conv, item));
+      item.querySelector('.edit-name-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        editContactName(conv);
+      });
       el.appendChild(item);
     });
+  }
+
+  async function editContactName(conv) {
+    const current = conv.name || '';
+    const input = window.prompt('Nama panggilan untuk ' + conv.id + ' (kosongkan untuk hapus nama):', current);
+    if (input === null) return; // dibatalkan
+
+    const res = await apiFetch('/api/admin/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channel: conv.channel, id: conv.id, name: input }),
+    });
+
+    if (res.ok) {
+      conv.name = input.trim() || null;
+      renderConvList();
+      if (state.activeConv && state.activeConv.id === conv.id && state.activeConv.channel === conv.channel) {
+        state.activeConv.name = conv.name;
+        updateChatHeaderName();
+      }
+    } else {
+      alert('Gagal menyimpan nama. Coba lagi.');
+    }
+  }
+
+  function updateChatHeaderName() {
+    const headerEl = $('#chatHeader');
+    if (!headerEl || !state.activeConv) return;
+    const conv = state.activeConv;
+    const label = conv.name ? conv.name + ' (' + conv.id + ')' : conv.id;
+    headerEl.textContent = (conv.channel === 'whatsapp' ? 'WhatsApp' : 'Telegram') + ' · ' + label;
   }
 
   async function selectConv(conv, itemEl) {
@@ -375,8 +435,9 @@
 
   function renderChat(conv, history) {
     const panel = $('#chatPanel');
+    const label = conv.name ? conv.name + ' (' + conv.id + ')' : conv.id;
     panel.innerHTML =
-      '<div id="chatHeader">' + (conv.channel === 'whatsapp' ? 'WhatsApp' : 'Telegram') + ' · ' + conv.id + '</div>' +
+      '<div id="chatHeader">' + (conv.channel === 'whatsapp' ? 'WhatsApp' : 'Telegram') + ' · ' + label + '</div>' +
       '<div id="chatMessages"></div>';
     const msgEl = panel.querySelector('#chatMessages');
     if (!history.length) {

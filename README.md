@@ -9,8 +9,9 @@ wa-vercel-bot/
 │   ├── webhook.js         ← endpoint WhatsApp  (https://domain-anda/api/webhook)
 │   ├── telegram.js        ← endpoint Telegram  (https://domain-anda/api/telegram)
 │   └── admin/
-│       ├── users.js       ← API: daftar percakapan (dipakai halaman /admin)
+│       ├── users.js       ← API: daftar percakapan + nama kontak (dipakai halaman /admin)
 │       ├── history.js     ← API: riwayat satu percakapan
+│       ├── contact.js     ← API: simpan/ubah nama panggilan kontak
 │       └── faq.js         ← API: baca & simpan FAQ custom
 ├── lib/
 │   ├── askGemini.js       ← pemanggil Gemini API (dipakai kedua channel)
@@ -18,6 +19,7 @@ wa-vercel-bot/
 │   ├── seenStore.js       ← deteksi "pesan pertama dari user ini" via Upstash Redis
 │   ├── historyStore.js    ← simpan, ambil, & list riwayat percakapan via Upstash Redis
 │   ├── faqStore.js        ← simpan & ambil FAQ custom via Upstash Redis
+│   ├── contactStore.js    ← simpan & ambil nama panggilan kontak via Upstash Redis
 │   ├── adminAuth.js       ← cek password admin di tiap request /api/admin/*
 │   └── faq.js             ← FAQ default + pesan perkenalan + system prompt builder
 ├── public/
@@ -130,7 +132,7 @@ Kirim WhatsApp dari nomor test yang sudah diverifikasi di dashboard Meta. Cek lo
 
 Buka `https://wa-magang-bot.vercel.app/admin` di browser. Masukkan password yang sama dengan `ADMIN_PASSWORD` di env Vercel.
 
-**Tab "Riwayat Pesan"**: daftar semua orang yang pernah chat (WhatsApp & Telegram jadi satu daftar), klik salah satu untuk lihat isi percakapannya.
+**Tab "Riwayat Pesan"**: daftar semua orang yang pernah chat (WhatsApp & Telegram jadi satu daftar), klik salah satu untuk lihat isi percakapannya. Klik ikon ✏️ di sebelah nomor/ID untuk kasih nama panggilan (mis. "Budi - UGM") supaya lebih gampang dikenali daripada nomor mentah — nama ini cuma untuk Anda di panel admin, tidak memengaruhi cara bot membalas.
 
 **Tab "Edit FAQ"**: isi FAQ yang sedang aktif ditampilkan di textarea. Edit lalu klik **Simpan perubahan** — bot langsung memakai versi baru di chat berikutnya, tanpa perlu redeploy.
 
