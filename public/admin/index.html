@@ -229,6 +229,7 @@
   .empty-state {
     flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     color: var(--text-dim);
@@ -236,6 +237,7 @@
     font-size: 13px;
     text-align: center;
     padding: 24px;
+    gap: 10px;
   }
 
   /* ---------- FAQ view ---------- */
@@ -535,10 +537,19 @@
 
   // ---------- Riwayat Pesan ----------
   async function loadConversations() {
-    const res = await apiFetch('/api/admin/users');
-    const data = await res.json();
-    state.conversations = data.conversations || [];
-    renderConvList();
+    try {
+      const res = await apiFetch('/api/admin/users');
+      if (!res.ok) throw new Error('Server merespons status ' + res.status);
+      const data = await res.json();
+      state.conversations = data.conversations || [];
+      renderConvList();
+    } catch (err) {
+      console.error('Gagal memuat daftar percakapan:', err);
+      $('#convList').innerHTML =
+        '<div class="empty-state"><span>Gagal memuat daftar: ' + err.message + '</span><button class="secondary" id="retryConvBtn">Coba lagi</button></div>';
+      const retryBtn = document.getElementById('retryConvBtn');
+      if (retryBtn) retryBtn.addEventListener('click', loadConversations);
+    }
   }
 
   function renderConvList() {
@@ -619,9 +630,21 @@
 
     $('#chatPanel').innerHTML = '<div class="empty-state">Memuat riwayat…</div>';
 
-    const res = await apiFetch('/api/admin/history?channel=' + encodeURIComponent(conv.channel) + '&id=' + encodeURIComponent(conv.id));
-    const data = await res.json();
-    renderChat(conv, data.history || []);
+    try {
+      const res = await apiFetch('/api/admin/history?channel=' + encodeURIComponent(conv.channel) + '&id=' + encodeURIComponent(conv.id));
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || ('Server merespons status ' + res.status));
+      }
+      const data = await res.json();
+      renderChat(conv, data.history || []);
+    } catch (err) {
+      console.error('Gagal memuat riwayat percakapan:', err);
+      $('#chatPanel').innerHTML =
+        '<div class="empty-state"><span>Gagal memuat riwayat: ' + err.message + '</span><button class="secondary" id="retryLoadBtn">Coba lagi</button></div>';
+      const retryBtn = document.getElementById('retryLoadBtn');
+      if (retryBtn) retryBtn.addEventListener('click', () => selectConv(conv, itemEl));
+    }
   }
 
   function renderChat(conv, history) {
