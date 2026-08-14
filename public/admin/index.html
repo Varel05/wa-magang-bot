@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>MagangJogja Bot — Admin</title>
+<style>
+  :root {
+    --bg: #12151c;
+    --panel: #1a1e28;
+    --panel-raised: #212635;
+    --border: #2b3040;
+    --text: #e8e9ee;
+    --text-dim: #8b8fa3;
+    --accent: #ff8a3d;
+    --accent-dim: #4a3626;
+    --wa-color: #3ddc84;
+    --tg-color: #4dabf7;
+    --danger: #ff5c5c;
+    --font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+  }
+
+  /* ---------- Login gate ---------- */
+  #loginGate {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 20px;
+    padding: 24px;
+  }
+
+  #loginGate h1 {
+    font-family: var(--font-display);
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    margin: 0;
+    color: var(--text);
+  }
+
+  #loginGate .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0;
+  }
+
+  .login-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px;
+    width: 100%;
+    max-width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  input[type="password"], textarea {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 10px 12px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    outline: none;
+  }
+  input[type="password"]:focus, textarea:focus { border-color: var(--accent); }
+
+  button {
+    background: var(--accent);
+    color: #1a1108;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  button:hover { filter: brightness(1.08); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+
+  .error-text { color: var(--danger); font-size: 13px; margin: 0; min-height: 16px; }
+
+  /* ---------- App shell ---------- */
+  #app { display: none; min-height: 100vh; flex-direction: column; }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 {
+    font-family: var(--font-display);
+    font-size: 18px;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  header .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  nav.tabs { display: flex; gap: 4px; padding: 0 24px; border-bottom: 1px solid var(--border); }
+  nav.tabs button {
+    background: none;
+    color: var(--text-dim);
+    border-radius: 0;
+    padding: 12px 4px;
+    margin-right: 24px;
+    font-size: 14px;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+  }
+  nav.tabs button.active { color: var(--text); border-bottom-color: var(--accent); }
+
+  main { flex: 1; overflow: hidden; }
+  .view { display: none; height: 100%; }
+  .view.active { display: flex; }
+
+  /* ---------- Riwayat view ---------- */
+  #convList {
+    width: 300px;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  .conv-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .conv-item:hover { background: var(--panel); }
+  .conv-item.active { background: var(--panel-raised); }
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .chip.whatsapp { background: rgba(61,220,132,0.15); color: var(--wa-color); }
+  .chip.telegram { background: rgba(77,171,247,0.15); color: var(--tg-color); }
+  .conv-id { font-family: var(--font-mono); font-size: 13px; color: var(--text); }
+
+  #chatPanel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  #chatHeader {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  #chatMessages { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+  .bubble {
+    max-width: 70%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+  .bubble.user { align-self: flex-end; background: var(--accent-dim); color: var(--text); border-bottom-right-radius: 2px; }
+  .bubble.model { align-self: flex-start; background: var(--panel); color: var(--text); border: 1px solid var(--border); border-bottom-left-radius: 2px; }
+
+  .empty-state {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    text-align: center;
+    padding: 24px;
+  }
+
+  /* ---------- FAQ view ---------- */
+  #faqView { flex-direction: column; padding: 24px; gap: 14px; max-width: 780px; margin: 0 auto; width: 100%; }
+  #faqView label { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); }
+  #faqTextarea { width: 100%; min-height: 420px; resize: vertical; line-height: 1.6; }
+  .faq-status { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
+  .faq-actions { display: flex; align-items: center; gap: 12px; }
+  .toast { font-size: 13px; padding: 6px 0; min-height: 20px; }
+  .toast.success { color: var(--wa-color); }
+  .toast.error { color: var(--danger); }
+</style>
+</head>
+<body>
+
+  <!-- LOGIN GATE -->
+  <div id="loginGate">
+    <p class="eyebrow">MagangJogja Bot</p>
+    <h1>Masuk ke panel admin</h1>
+    <div class="login-box">
+      <input type="password" id="passwordInput" placeholder="Password admin" autofocus>
+      <button id="loginBtn">Masuk</button>
+      <p class="error-text" id="loginError"></p>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="app">
+    <header>
+      <div>
+        <p class="eyebrow">MagangJogja Bot</p>
+        <h1>Panel Admin</h1>
+      </div>
+      <button class="secondary" id="logoutBtn">Keluar</button>
+    </header>
+
+    <nav class="tabs">
+      <button data-tab="riwayat" class="active">Riwayat Pesan</button>
+      <button data-tab="faq">Edit FAQ</button>
+    </nav>
+
+    <main>
+      <div class="view active" id="riwayatView">
+        <div id="convList"><div class="empty-state">Memuat daftar percakapan…</div></div>
+        <div id="chatPanel">
+          <div class="empty-state">Pilih percakapan di sebelah kiri untuk melihat riwayatnya.</div>
+        </div>
+      </div>
+
+      <div class="view" id="faqView">
+        <div>
+          <label for="faqTextarea">Isi FAQ / informasi program magang</label>
+          <p class="faq-status" id="faqStatus"></p>
+        </div>
+        <textarea id="faqTextarea" spellcheck="false"></textarea>
+        <div class="faq-actions">
+          <button id="saveFaqBtn">Simpan perubahan</button>
+          <button class="secondary" id="reloadFaqBtn">Muat ulang</button>
+        </div>
+        <p class="toast" id="faqToast"></p>
+      </div>
+    </main>
+  </div>
+
+<script>
+  const state = { password: null, conversations: [], activeConv: null };
+
+  const $ = (sel) => document.querySelector(sel);
+
+  function apiFetch(path, opts = {}) {
+    return fetch(path, {
+      ...opts,
+      headers: {
+        'X-Admin-Password': state.password,
+        ...(opts.headers || {}),
+      },
+    });
+  }
+
+  // ---------- Login ----------
+  $('#loginBtn').addEventListener('click', login);
+  $('#passwordInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') login(); });
+
+  async function login() {
+    const pw = $('#passwordInput').value.trim();
+    if (!pw) return;
+    state.password = pw;
+
+    const res = await apiFetch('/api/admin/users');
+    if (res.status === 401) {
+      $('#loginError').textContent = 'Password salah.';
+      state.password = null;
+      return;
+    }
+    if (!res.ok) {
+      $('#loginError').textContent = 'Gagal terhubung ke server. Coba lagi.';
+      return;
+    }
+
+    sessionStorage.setItem('admin_password', pw);
+    $('#loginGate').style.display = 'none';
+    $('#app').style.display = 'flex';
+    initApp();
+  }
+
+  $('#logoutBtn').addEventListener('click', () => {
+    sessionStorage.removeItem('admin_password');
+    location.reload();
+  });
+
+  // Auto-login kalau password sudah tersimpan di sessionStorage
+  (function tryAutoLogin() {
+    const saved = sessionStorage.getItem('admin_password');
+    if (saved) {
+      $('#passwordInput').value = saved;
+      login();
+    }
+  })();
+
+  // ---------- Tabs ----------
+  document.querySelectorAll('nav.tabs button').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('nav.tabs button').forEach((b) => b.classList.remove('active'));
+      document.querySelectorAll('.view').forEach((v) => v.classList.remove('active'));
+      btn.classList.add('active');
+      $('#' + btn.dataset.tab + 'View').classList.add('active');
+      if (btn.dataset.tab === 'faq') loadFaq();
+    });
+  });
+
+  function initApp() {
+    loadConversations();
+  }
+
+  // ---------- Riwayat Pesan ----------
+  async function loadConversations() {
+    const res = await apiFetch('/api/admin/users');
+    const data = await res.json();
+    state.conversations = data.conversations || [];
+    renderConvList();
+  }
+
+  function renderConvList() {
+    const el = $('#convList');
+    if (!state.conversations.length) {
+      el.innerHTML = '<div class="empty-state">Belum ada percakapan tersimpan.</div>';
+      return;
+    }
+    el.innerHTML = '';
+    state.conversations.forEach((conv) => {
+      const item = document.createElement('div');
+      item.className = 'conv-item';
+      item.innerHTML = '<span class="chip ' + conv.channel + '">' + (conv.channel === 'whatsapp' ? 'WA' : 'TG') + '</span><span class="conv-id">' + conv.id + '</span>';
+      item.addEventListener('click', () => selectConv(conv, item));
+      el.appendChild(item);
+    });
+  }
+
+  async function selectConv(conv, itemEl) {
+    document.querySelectorAll('.conv-item').forEach((e) => e.classList.remove('active'));
+    itemEl.classList.add('active');
+    state.activeConv = conv;
+
+    $('#chatPanel').innerHTML = '<div class="empty-state">Memuat riwayat…</div>';
+
+    const res = await apiFetch('/api/admin/history?channel=' + encodeURIComponent(conv.channel) + '&id=' + encodeURIComponent(conv.id));
+    const data = await res.json();
+    renderChat(conv, data.history || []);
+  }
+
+  function renderChat(conv, history) {
+    const panel = $('#chatPanel');
+    panel.innerHTML =
+      '<div id="chatHeader">' + (conv.channel === 'whatsapp' ? 'WhatsApp' : 'Telegram') + ' · ' + conv.id + '</div>' +
+      '<div id="chatMessages"></div>';
+    const msgEl = panel.querySelector('#chatMessages');
+    if (!history.length) {
+      msgEl.innerHTML = '<div class="empty-state">Belum ada riwayat pesan (mungkin sudah kedaluwarsa).</div>';
+      return;
+    }
+    history.forEach((h) => {
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble ' + (h.role === 'user' ? 'user' : 'model');
+      bubble.textContent = h.text;
+      msgEl.appendChild(bubble);
+    });
+    msgEl.scrollTop = msgEl.scrollHeight;
+  }
+
+  // ---------- Edit FAQ ----------
+  let faqLoaded = false;
+  async function loadFaq() {
+    if (faqLoaded) return;
+    faqLoaded = true;
+    const res = await apiFetch('/api/admin/faq');
+    const data = await res.json();
+    $('#faqTextarea').value = data.content || '';
+    $('#faqStatus').textContent = data.isCustom
+      ? '✓ Memakai versi custom (sudah pernah diedit)'
+      : 'Memakai versi default bawaan (belum pernah diedit)';
+  }
+
+  $('#reloadFaqBtn').addEventListener('click', () => { faqLoaded = false; loadFaq(); });
+
+  $('#saveFaqBtn').addEventListener('click', async () => {
+    const content = $('#faqTextarea').value;
+    const btn = $('#saveFaqBtn');
+    const toast = $('#faqToast');
+    btn.disabled = true;
+    toast.textContent = 'Menyimpan…';
+    toast.className = 'toast';
+
+    try {
+      const res = await apiFetch('/api/admin/faq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Gagal menyimpan.');
+      toast.textContent = '✓ Tersimpan. Perubahan langsung berlaku ke bot, tanpa perlu deploy ulang.';
+      toast.className = 'toast success';
+      faqLoaded = false;
+      loadFaq();
+    } catch (err) {
+      toast.textContent = '✗ ' + err.message;
+      toast.className = 'toast error';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

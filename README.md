@@ -6,24 +6,33 @@ Satu project, dua channel: **WhatsApp** dan **Telegram**, sama-sama pakai FAQ da
 ```
 wa-vercel-bot/
 ├── api/
-│   ├── webhook.js        ← endpoint WhatsApp  (https://domain-anda/api/webhook)
-│   └── telegram.js       ← endpoint Telegram  (https://domain-anda/api/telegram)
+│   ├── webhook.js         ← endpoint WhatsApp  (https://domain-anda/api/webhook)
+│   ├── telegram.js        ← endpoint Telegram  (https://domain-anda/api/telegram)
+│   └── admin/
+│       ├── users.js       ← API: daftar percakapan (dipakai halaman /admin)
+│       ├── history.js     ← API: riwayat satu percakapan
+│       └── faq.js         ← API: baca & simpan FAQ custom
 ├── lib/
 │   ├── askGemini.js       ← pemanggil Gemini API (dipakai kedua channel)
 │   ├── telegram.js        ← helper kirim pesan Telegram
 │   ├── seenStore.js       ← deteksi "pesan pertama dari user ini" via Upstash Redis
-│   ├── historyStore.js    ← simpan & ambil riwayat percakapan per user via Upstash Redis
-│   └── faq.js             ← FAQ MAGANG + pesan perkenalan + system prompt (dipakai kedua channel)
+│   ├── historyStore.js    ← simpan, ambil, & list riwayat percakapan via Upstash Redis
+│   ├── faqStore.js        ← simpan & ambil FAQ custom via Upstash Redis
+│   ├── adminAuth.js       ← cek password admin di tiap request /api/admin/*
+│   └── faq.js             ← FAQ default + pesan perkenalan + system prompt builder
+├── public/
+│   └── admin/
+│       └── index.html     ← halaman UI admin (https://domain-anda/admin)
 ├── package.json
 └── .env.example
 ```
 
-## 1. Isi FAQ magang
+## 1. Isi FAQ magang (versi awal/default)
 
-Buka `lib/faq.js`, ganti isi `FAQ_MAGANG` dengan data program magang Anda yang sebenarnya
-(syarat, jadwal, dokumen, alur pendaftaran, dll). Semakin lengkap & rapi, semakin akurat jawaban bot.
+Buka `lib/faq.js`, ganti isi `DEFAULT_FAQ_MAGANG` dengan data program magang Anda yang sebenarnya
+(syarat, jadwal, dokumen, alur pendaftaran, dll). Ini FAQ default yang dipakai selama belum pernah diedit lewat halaman **/admin**.
 
-> Kirimkan FAQ Anda ke saya kapan saja kalau mau saya bantu susun/rapikan ke format ini.
+Setelah project live, Anda tidak perlu edit file ini lagi untuk update FAQ sehari-hari — cukup lewat halaman `/admin` (lihat langkah 6), perubahan langsung berlaku tanpa deploy ulang.
 
 ## 2. Dapatkan Gemini API key
 
@@ -66,6 +75,7 @@ git push -u origin main
    - `TELEGRAM_WEBHOOK_SECRET` (bebas, buat sendiri)
    - `UPSTASH_REDIS_REST_URL`
    - `UPSTASH_REDIS_REST_TOKEN`
+   - `ADMIN_PASSWORD` (bebas, buat password kuat — ini kunci masuk ke halaman /admin)
 3. Klik **Deploy**. Setelah selesai, Anda dapat domain permanen, misalnya:
    ```
    https://wa-magang-bot.vercel.app
@@ -116,10 +126,21 @@ Cari bot Anda di Telegram (pakai username yang dibuat di BotFather), kirim pesan
 Kirim WhatsApp dari nomor test yang sudah diverifikasi di dashboard Meta. Cek log realtime di:
 **Vercel Dashboard → project Anda → tab "Logs"**.
 
-## 9. Batasan versi ini (dan cara upgrade-nya nanti)
+## 9. Pakai panel admin (riwayat pesan & edit FAQ)
+
+Buka `https://wa-magang-bot.vercel.app/admin` di browser. Masukkan password yang sama dengan `ADMIN_PASSWORD` di env Vercel.
+
+**Tab "Riwayat Pesan"**: daftar semua orang yang pernah chat (WhatsApp & Telegram jadi satu daftar), klik salah satu untuk lihat isi percakapannya.
+
+**Tab "Edit FAQ"**: isi FAQ yang sedang aktif ditampilkan di textarea. Edit lalu klik **Simpan perubahan** — bot langsung memakai versi baru di chat berikutnya, tanpa perlu redeploy.
+
+> ⚠️ Halaman ini menampilkan data pribadi (nomor WA/isi chat calon pemagang). Jaga `ADMIN_PASSWORD` tetap rahasia, jangan dibagikan sembarangan.
+
+## 10. Batasan versi ini (dan cara upgrade-nya nanti)
 
 - **Riwayat percakapan**: disimpan otomatis, maksimal 6 pasang pesan terakhir per orang (bisa diubah di `MAX_TURNS` pada `lib/historyStore.js`), dan otomatis "lupa" kalau tidak ada pesan baru selama 2 hari (`HISTORY_TTL_SECONDS`). Semakin besar MAX_TURNS, semakin "ingat banyak" tapi juga semakin banyak token yang dikirim ke Gemini tiap request (lebih mahal & sedikit lebih lambat).
 - **Status "mengetik" di WhatsApp**: aktif otomatis, durasi = jumlah kata balasan ÷ 5 detik (diatur di `TYPING_WORDS_PER_SECOND`, `api/webhook.js`), dibatasi maksimal 8 detik (`MAX_TYPING_DELAY_SECONDS`) supaya aman dari timeout function. Kalau plan Vercel Anda mendukung durasi function lebih lama, boleh dinaikkan bareng nilai `maxDuration` di file yang sama. **Vercel Hobby plan default membatasi function maksimal beberapa detik saja** — kalau `maxDuration: 30` di kode ditolak/di-cap saat deploy, itu tandanya perlu upgrade plan atau turunkan nilainya.
 - **Reset riwayat/status seseorang** (misal untuk testing ulang dari nol): hapus key `seen:whatsapp:<nomor>`, `history:whatsapp:<nomor>` (atau versi `telegram:<chatId>`-nya) di Upstash console (tab Data Browser).
 - **Token WhatsApp temporary** (kalau masih pakai token 24 jam dari testing) akan expired — untuk pemakaian tetap, buat **permanent token** via System User di Meta Business Suite.
+- **Password admin sederhana**: proteksi `/admin` cuma satu password bersama (bukan sistem login per-user). Cukup untuk 1 admin, tapi kalau nanti perlu multi-admin dengan akses berbeda, beri tahu saya, bisa ditingkatkan.
 - Model AI yang dipakai (`gemini-3.5-flash-lite`) dipilih karena cepat & murah, cocok untuk FAQ bervolume tinggi. Kalau butuh jawaban yang lebih "pintar" untuk pertanyaan kompleks, bisa ganti model di `lib/askGemini.js` (misalnya ke `gemini-3.6-flash`).
