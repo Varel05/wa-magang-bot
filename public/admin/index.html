@@ -213,6 +213,7 @@
     font-size: 13px;
     color: var(--text-dim);
   }
+  #chatHeader > div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   #chatMessages { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 12px; }
   .bubble {
     max-width: 70%;
@@ -275,6 +276,62 @@
   @keyframes notifIn {
     from { opacity: 0; transform: translateX(20px); }
     to { opacity: 1; transform: translateX(0); }
+  }
+
+  .back-btn { display: none; }
+
+  /* ---------- Responsif: tablet & mobile ---------- */
+  @media (max-width: 860px) {
+    header { padding: 14px 16px; }
+    header h1 { font-size: 16px; }
+    nav.tabs { padding: 0 16px; overflow-x: auto; }
+    nav.tabs button { margin-right: 18px; padding: 12px 2px; white-space: nowrap; }
+
+    #faqView { padding: 16px; gap: 12px; }
+    #faqTextarea { min-height: 320px; font-size: 16px; } /* 16px biar iOS Safari tidak auto-zoom saat fokus */
+    .faq-actions { flex-wrap: wrap; }
+    .faq-actions button { flex: 1; min-width: 140px; }
+
+    #notifToastContainer { left: 12px; right: 12px; top: 12px; width: auto; }
+
+    /* Layout master-detail: daftar & chat gantian tampil, bukan berdampingan */
+    #riwayatView { position: relative; overflow: hidden; }
+    #convList { width: 100%; border-right: none; }
+    #chatPanel {
+      position: absolute;
+      inset: 0;
+      background: var(--bg);
+      transform: translateX(100%);
+      transition: transform 0.18s ease-out;
+    }
+    #riwayatView.mobile-chat-active #convList { display: none; }
+    #riwayatView.mobile-chat-active #chatPanel { transform: translateX(0); }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      color: var(--accent);
+      padding: 0 0 0 0;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .conv-item { padding: 14px 12px 14px 16px; }
+    .edit-name-btn { padding: 6px 10px; } /* target sentuh lebih nyaman */
+
+    .bubble { max-width: 85%; }
+  }
+
+  @media (max-width: 480px) {
+    #loginGate { padding: 16px; }
+    .login-box { padding: 20px; }
+    header .eyebrow { display: none; } /* hemat ruang di layar sangat sempit */
+    .chip { padding: 3px 6px; }
+    .edit-name-btn { font-size: 11px; padding: 6px 8px; }
   }
 </style>
 </head>
@@ -547,6 +604,7 @@
     document.querySelectorAll('.conv-item').forEach((e) => e.classList.remove('active'));
     itemEl.classList.add('active');
     state.activeConv = conv;
+    $('#riwayatView').classList.add('mobile-chat-active'); // di mobile: pindah tampilan ke panel chat
 
     // Bersihkan status unread untuk percakapan ini
     const key = conv.channel + ':' + conv.id;
@@ -570,8 +628,11 @@
     const panel = $('#chatPanel');
     const label = conv.name ? conv.name + ' (' + conv.id + ')' : conv.id;
     panel.innerHTML =
-      '<div id="chatHeader">' + (conv.channel === 'whatsapp' ? 'WhatsApp' : 'Telegram') + ' · ' + label + '</div>' +
+      '<div id="chatHeader"><button class="back-btn" id="backToListBtn">← Kembali</button><div>' + (conv.channel === 'whatsapp' ? 'WhatsApp' : 'Telegram') + ' · ' + label + '</div></div>' +
       '<div id="chatMessages"></div>';
+    panel.querySelector('#backToListBtn').addEventListener('click', () => {
+      $('#riwayatView').classList.remove('mobile-chat-active');
+    });
     const msgEl = panel.querySelector('#chatMessages');
     if (!history.length) {
       msgEl.innerHTML = '<div class="empty-state">Belum ada riwayat pesan (mungkin sudah kedaluwarsa).</div>';
