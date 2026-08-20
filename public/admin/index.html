@@ -18,9 +18,31 @@
     --wa-color: #3ddc84;
     --tg-color: #4dabf7;
     --danger: #ff5c5c;
+    --header-bg: rgba(18, 21, 28, 0.9);
+    --shadow: rgba(0, 0, 0, 0.28);
+    --chip-wa: rgba(61,220,132,0.15);
+    --chip-tg: rgba(77,171,247,0.15);
     --font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
     --font-body: 'Inter', 'Segoe UI', system-ui, sans-serif;
     --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+  }
+
+  body[data-theme="light"] {
+    --bg: #f3f6fb;
+    --panel: #ffffff;
+    --panel-raised: #eef3fb;
+    --border: #d8e1f0;
+    --text: #1b2430;
+    --text-dim: #657287;
+    --accent: #ff8a3d;
+    --accent-dim: #ffe8d8;
+    --wa-color: #1ea85b;
+    --tg-color: #1d72d8;
+    --danger: #d94a4a;
+    --header-bg: rgba(255, 255, 255, 0.9);
+    --shadow: rgba(15, 23, 42, 0.12);
+    --chip-wa: rgba(30,168,91,0.12);
+    --chip-tg: rgba(29,114,216,0.12);
   }
 
   * { box-sizing: border-box; }
@@ -102,10 +124,20 @@
     font-weight: 600;
     font-size: 14px;
     cursor: pointer;
+    transition: all 0.2s ease;
   }
   button:hover { filter: brightness(1.08); }
   button:disabled { opacity: 0.5; cursor: not-allowed; }
   button.secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .theme-toggle {
+    min-width: 120px;
+    justify-content: center;
+  }
 
   .error-text { color: var(--danger); font-size: 13px; margin: 0; min-height: 16px; }
 
@@ -118,6 +150,8 @@
     justify-content: space-between;
     padding: 16px 24px;
     border-bottom: 1px solid var(--border);
+    background: var(--header-bg);
+    backdrop-filter: blur(8px);
   }
   header h1 {
     font-family: var(--font-display);
@@ -186,8 +220,8 @@
     flex-shrink: 0;
     cursor: pointer;
   }
-  .chip.whatsapp { background: rgba(61,220,132,0.15); color: var(--wa-color); }
-  .chip.telegram { background: rgba(77,171,247,0.15); color: var(--tg-color); }
+  .chip.whatsapp { background: var(--chip-wa); color: var(--wa-color); }
+  .chip.telegram { background: var(--chip-tg); color: var(--tg-color); }
   .conv-id {
     font-family: var(--font-mono);
     font-size: 13px;
@@ -296,7 +330,7 @@
     font-size: 13px;
     cursor: pointer;
     animation: notifIn 0.15s ease-out;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 16px var(--shadow);
   }
   .notif-toast:hover { background: var(--panel); }
   .notif-toast .notif-title { font-weight: 600; margin-bottom: 3px; }
@@ -441,7 +475,10 @@
         <p class="eyebrow">MagangJogja Bot</p>
         <h1>Panel Admin</h1>
       </div>
-      <button class="secondary" id="logoutBtn">Keluar</button>
+      <div class="header-actions">
+        <button class="secondary theme-toggle" id="themeToggle" type="button">🌙 Malam</button>
+        <button class="secondary" id="logoutBtn" type="button">Keluar</button>
+      </div>
     </header>
 
     <nav class="tabs">
@@ -475,8 +512,29 @@
 <script>
   const state = { password: null, conversations: [], activeConv: null, lastNotifiedAt: 0, unreadCount: 0, unreadByConv: {} };
   const ORIGINAL_TITLE = document.title;
+  const THEME_KEY = 'admin-theme';
 
   const $ = (sel) => document.querySelector(sel);
+
+  function applyTheme(theme) {
+    const next = (theme === 'light' ? 'light' : 'dark');
+    document.body.setAttribute('data-theme', next);
+    const btn = $('#themeToggle');
+    if (btn) btn.textContent = next === 'light' ? '☀️ Terang' : '🌙 Malam';
+    localStorage.setItem(THEME_KEY, next);
+  }
+
+  function initTheme() {
+    const saved = localStorage.getItem(THEME_KEY) || 'dark';
+    applyTheme(saved);
+    const btn = $('#themeToggle');
+    if (btn) {
+      btn.addEventListener('click', () => {
+        const current = document.body.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+        applyTheme(current === 'light' ? 'dark' : 'light');
+      });
+    }
+  }
 
   function apiFetch(path, opts = {}) {
     return fetch(path, {
@@ -487,6 +545,8 @@
       },
     });
   }
+
+  initTheme();
 
   // ---------- Login ----------
   $('#loginBtn').addEventListener('click', login);
