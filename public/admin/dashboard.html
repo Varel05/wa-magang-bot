@@ -475,27 +475,7 @@
       <button data-tab="faq">Edit FAQ</button>
     </nav>
 
-    <main>
-      <div class="view active" id="riwayatView">
-        <div id="convList"><div class="empty-state">Memuat daftar percakapan…</div></div>
-        <div id="chatPanel">
-          <div class="empty-state">Pilih percakapan di sebelah kiri untuk melihat riwayatnya.</div>
-        </div>
-      </div>
-
-      <div class="view" id="faqView">
-        <div>
-          <label for="faqTextarea">Isi FAQ / informasi program magang</label>
-          <p class="faq-status" id="faqStatus"></p>
-        </div>
-        <textarea id="faqTextarea" spellcheck="false"></textarea>
-        <div class="faq-actions">
-          <button id="saveFaqBtn">Simpan perubahan</button>
-          <button class="secondary" id="reloadFaqBtn">Muat ulang</button>
-        </div>
-        <p class="toast" id="faqToast"></p>
-      </div>
-    </main>
+    <main id="adminView"></main>
   </div>
 
 <script>
@@ -550,19 +530,30 @@
     window.location.replace('login.html');
   });
 
-  // ---------- Tabs ----------
-  document.querySelectorAll('nav.tabs button').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('nav.tabs button').forEach((b) => b.classList.remove('active'));
-      document.querySelectorAll('.view').forEach((v) => v.classList.remove('active'));
-      btn.classList.add('active');
-      $('#' + btn.dataset.tab + 'View').classList.add('active');
-      if (btn.dataset.tab === 'faq') loadFaq();
+  // ---------- Menu ----------
+  async function loadView(tab) {
+    const view = $('#adminView');
+    const res = await fetch(tab + '.html');
+    if (!res.ok) throw new Error('Gagal memuat menu ' + tab + '.');
+    view.innerHTML = await res.text();
+    document.querySelectorAll('nav.tabs button').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.tab === tab);
     });
+    if (tab === 'faq') initFaqView();
+    if (tab === 'riwayat') loadConversations();
+  }
+
+  document.querySelectorAll('nav.tabs button').forEach((btn) => {
+    btn.addEventListener('click', () => loadView(btn.dataset.tab).catch(showViewError));
   });
 
+  function showViewError(err) {
+    console.error(err);
+    $('#adminView').innerHTML = '<div class="empty-state">' + err.message + '</div>';
+  }
+
   function initApp() {
-    loadConversations();
+    loadView('riwayat').catch(showViewError);
     state.lastNotifiedAt = Date.now(); // cuma notifikasi pesan yang masuk SETELAH buka panel ini
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
@@ -786,9 +777,14 @@
       : 'Memakai versi default bawaan (belum pernah diedit)';
   }
 
-  $('#reloadFaqBtn').addEventListener('click', () => { faqLoaded = false; loadFaq(); });
+  function initFaqView() {
+    faqLoaded = false;
+    loadFaq();
+    $('#reloadFaqBtn').addEventListener('click', () => { faqLoaded = false; loadFaq(); });
+    $('#saveFaqBtn').addEventListener('click', saveFaq);
+  }
 
-  $('#saveFaqBtn').addEventListener('click', async () => {
+  async function saveFaq() {
     const content = $('#faqTextarea').value;
     const btn = $('#saveFaqBtn');
     const toast = $('#faqToast');
@@ -814,7 +810,7 @@
     } finally {
       btn.disabled = false;
     }
-  });
+  }
 </script>
 </body>
 </html>
