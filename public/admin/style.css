@@ -39,8 +39,9 @@ nav.tabs { display: flex; gap: 4px; padding: 0 24px; border-bottom: 1px solid va
 nav.tabs button { background: none; color: var(--text-dim); border-radius: 0; padding: 12px 4px; margin-right: 24px; font-size: 14px; font-weight: 500; border-bottom: 2px solid transparent; }
 nav.tabs button.active { color: var(--text); border-bottom-color: var(--accent); }
 main { flex: 1; min-height: 0; overflow: hidden; }
+#adminView { display: flex; flex: 1; min-height: 0; overflow: hidden; }
 .view { display: none; width: 100%; height: 100%; min-height: 0; }
-.view.active { display: flex; }
+.view.active { display: flex; flex: 1; }
 #convList { width: 300px; border-right: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; }
 .conv-item { display: flex; align-items: center; gap: 10px; padding: 14px 16px 14px 20px; border-bottom: 1px solid var(--border); cursor: default; }
 .conv-item:hover { background: var(--panel); }
@@ -88,7 +89,7 @@ main { flex: 1; min-height: 0; overflow: hidden; }
   .faq-actions button { flex: 1; min-width: 140px; }
   #notifToastContainer { left: 12px; right: 12px; top: 12px; width: auto; }
   #riwayatView { position: relative; overflow: hidden; height: 100%; }
-  #convList { width: 100%; border-right: none; min-height: 0; background: #111827; }
+  #convList { width: 100%; height: 100%; border-right: none; min-height: 0; background: #111827; }
   #chatPanel { position: absolute; inset: 0; background: var(--bg); transform: translateX(100%); transition: transform 0.18s ease-out; z-index: 2; display: flex; min-height: 100%; }
   #riwayatView.mobile-chat-active #convList { display: none; }
   #riwayatView.mobile-chat-active #chatPanel { transform: translateX(0); }
