@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>MagangJogja Bot — Admin</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="output.css">
 </head>
 <body>
 
@@ -20,11 +20,8 @@
         <h1>Panel Admin</h1>
       </div>
       <div class="header-actions">
-        <label class="theme-switch" title="Ganti mode gelap/terang">
-          <input id="themeToggle" type="checkbox" role="switch" aria-label="Mode terang">
-          <span class="theme-slider" aria-hidden="true"></span>
-        </label>
-        <button class="secondary logout-btn" id="logoutBtn" type="button" aria-label="Keluar" title="Keluar">↪</button>
+        <button class="secondary theme-toggle" id="themeToggle" type="button">🌙 Malam</button>
+        <button class="secondary" id="logoutBtn" type="button">Keluar</button>
       </div>
     </header>
 
@@ -47,10 +44,7 @@
     const next = (theme === 'light' ? 'light' : 'dark');
     document.body.setAttribute('data-theme', next);
     const btn = $('#themeToggle');
-    if (btn) {
-      btn.checked = next === 'light';
-      btn.setAttribute('aria-label', next === 'light' ? 'Beralih ke mode gelap' : 'Beralih ke mode terang');
-    }
+    if (btn) btn.textContent = next === 'light' ? '☀️ Terang' : '🌙 Malam';
     localStorage.setItem(THEME_KEY, next);
   }
 
@@ -59,7 +53,7 @@
     applyTheme(saved);
     const btn = $('#themeToggle');
     if (btn) {
-      btn.addEventListener('change', () => {
+      btn.addEventListener('click', () => {
         const current = document.body.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
         applyTheme(current === 'light' ? 'dark' : 'light');
       });
