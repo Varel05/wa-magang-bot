@@ -82,8 +82,37 @@ body[data-theme="light"] {
   }
   button.secondary:hover { border-color: var(--accent); filter: none; @apply shadow-none; }
 
-  .header-actions { @apply flex items-center gap-2.5; }
-  .theme-toggle { @apply min-w-[120px] justify-center; }
+  .header-actions { @apply flex items-center gap-3; }
+
+  .theme-switch {
+    @apply relative inline-flex items-center rounded-full border cursor-pointer flex-shrink-0 transition-colors duration-200;
+    width: 52px;
+    height: 28px;
+    padding: 3px;
+    background: var(--panel-raised);
+    border-color: var(--border);
+  }
+  .theme-switch:hover { border-color: var(--accent); }
+  .theme-switch-icon {
+    @apply absolute top-1/2 -translate-y-1/2 pointer-events-none transition-opacity duration-200;
+    width: 14px;
+    height: 14px;
+  }
+  .theme-switch-icon.icon-sun { left: 6px; color: #f5b942; }
+  .theme-switch-icon.icon-moon { right: 6px; color: #a9b8ff; }
+  .theme-switch-thumb {
+    @apply absolute rounded-full shadow-md transition-transform duration-200 ease-out;
+    top: 3px;
+    left: 3px;
+    width: 22px;
+    height: 22px;
+    background: var(--accent);
+  }
+  .theme-switch[data-state="dark"] .theme-switch-thumb { transform: translateX(24px); }
+  .theme-switch[data-state="dark"] .icon-sun { opacity: 0.35; }
+  .theme-switch[data-state="light"] .icon-moon { opacity: 0.35; }
+
+  .logout-btn:hover { border-color: var(--danger); color: var(--danger); @apply shadow-none; }
   .error-text { @apply text-[13px] m-0 min-h-4; color: var(--danger); }
 
   #app { @apply flex min-h-screen flex-col; }
