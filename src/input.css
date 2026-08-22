@@ -30,26 +30,26 @@
   --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
 }
 body[data-theme="light"] {
-  --bg: #93c5fd; /* Darker background to contrast bubbles */
+  --bg: #C8DFDB; /* Background chat */
   --panel: #ffffff;
-  --panel-raised: #eff6ff;
-  --border: #bfdbfe;
+  --panel-raised: rgba(255, 255, 255, 0.3);
+  --border: rgba(255, 255, 255, 0.4);
   --text: #0f172a;
   --text-dim: #334155;
   --accent: #0f172a;
   --accent-strong: #1e3a8a;
-  --accent-dim: #2563eb; /* User bubble */
+  --accent-dim: #66A3BF; /* Bubble chat penanya */
   --user-text: #ffffff;
   --wa-color: #1ea85b;
   --tg-color: #4647ae;
   --danger: #dc2626;
-  --header-bg: #0f172a; /* Darkest blue for header */
+  --header-bg: #3368A0; /* Header */
   --header-text: #ffffff;
-  --nav-bg: #1e3a8a; /* Nav slightly lighter than header */
+  --nav-bg: #3368A0; /* Top navbar */
   --nav-text: #ffffff;
-  --nav-text-dim: #93c5fd;
-  --sidebar-bg: #dbeafe; /* Sidebar shade */
-  --bubble-model-bg: #ffffff;
+  --nav-text-dim: rgba(255, 255, 255, 0.75);
+  --sidebar-bg: #66A3BF; /* Side navbar */
+  --bubble-model-bg: #F2EFE7; /* Bubble chat AI */
   --bubble-model-text: #0f172a;
   --shadow: rgba(0, 0, 0, 0.1);
   --chip-wa: rgba(30, 168, 91, 0.12);
