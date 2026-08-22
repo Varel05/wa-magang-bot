@@ -178,7 +178,7 @@ body[data-theme="light"] {
   .view { @apply hidden w-full h-full min-h-0; }
   .view.active { @apply flex flex-1; }
 
-  #convList { @apply w-[300px] border-r overflow-y-auto flex-shrink-0; border-color: var(--border); background: var(--sidebar-bg); }
+  #convList { @apply w-full h-full; }
   .conv-item {
     @apply flex items-center gap-2.5 border-b cursor-default transition-colors duration-150;
     padding: 14px 16px 14px 20px;

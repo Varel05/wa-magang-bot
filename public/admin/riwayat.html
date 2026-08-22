@@ -1,5 +1,10 @@
 <div class="view active" id="riwayatView">
-  <div id="convList"><div class="empty-state">Memuat daftar percakapan...</div></div>
+  <div id="sidebarContainer" class="flex flex-col flex-shrink-0 w-[300px] border-r" style="border-color: var(--border); background: var(--sidebar-bg);">
+    <div class="p-3 border-b" style="border-color: var(--border);">
+      <input type="text" id="searchUserInput" class="w-full text-[13px] px-3 py-2 rounded-md" placeholder="Cari kontak/nomor..." style="background: var(--bg); border: 1px solid var(--border); color: var(--text);">
+    </div>
+    <div id="convList" class="flex-1 overflow-y-auto"><div class="empty-state">Memuat daftar percakapan...</div></div>
+  </div>
   <div id="chatPanel">
     <div class="empty-state">Pilih percakapan di sebelah kiri untuk melihat riwayatnya.</div>
   </div>

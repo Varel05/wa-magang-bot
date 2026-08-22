@@ -126,7 +126,13 @@
       btn.classList.toggle('active', btn.dataset.tab === tab);
     });
     if (tab === 'faq') initFaqView();
-    if (tab === 'riwayat') loadConversations();
+    if (tab === 'riwayat') {
+      loadConversations();
+      const searchUser = $('#searchUserInput');
+      if (searchUser) {
+        searchUser.addEventListener('input', () => renderConvList());
+      }
+    }
   }
 
   document.querySelectorAll('nav.tabs button').forEach((btn) => {
@@ -317,12 +323,20 @@
       return;
     }
     el.innerHTML = '';
+    
+    const searchInput = $('#searchUserInput');
+    const query = searchInput ? searchInput.value.toLowerCase() : '';
+    let hasMatch = false;
+
     state.conversations.forEach((conv) => {
+      const label = conv.name ? conv.name : conv.id;
+      if (query && !label.toLowerCase().includes(query)) return;
+      
+      hasMatch = true;
       const item = document.createElement('div');
       item.className = 'conv-item';
       const key = conv.channel + ':' + conv.id;
       item.dataset.key = key;
-      const label = conv.name ? conv.name : conv.id;
       const isUnread = Boolean(state.unreadByConv[key]);
       item.innerHTML =
         '<span class="chip ' + conv.channel + '">' + (conv.channel === 'whatsapp' ? 'WA' : 'TG') + '</span>' +
@@ -336,6 +350,10 @@
       });
       el.appendChild(item);
     });
+    
+    if (!hasMatch) {
+      el.innerHTML = '<div class="empty-state">Tidak ada hasil yang cocok.</div>';
+    }
   }
 
   async function editContactName(conv) {
@@ -415,23 +433,54 @@
     const panel = $('#chatPanel');
     const label = conv.name ? conv.name + ' (' + conv.id + ')' : conv.id;
     panel.innerHTML =
-      '<div id="chatHeader"><button class="back-btn" id="backToListBtn">← Kembali</button><div>' + (conv.channel === 'whatsapp' ? 'WhatsApp' : 'Telegram') + ' · ' + label + '</div></div>' +
+      '<div id="chatHeader" class="justify-between" style="flex-wrap: wrap;">' +
+        '<div style="display: flex; gap: 8px; align-items: center; overflow: hidden; min-width: 150px; flex: 1;">' +
+          '<button class="back-btn" id="backToListBtn">← Kembali</button>' +
+          '<div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + (conv.channel === 'whatsapp' ? 'WhatsApp' : 'Telegram') + ' · ' + label + '</div>' +
+        '</div>' +
+        '<input type="text" id="searchMessageInput" placeholder="Cari pesan..." style="background: var(--bg); border: 1px solid var(--border); color: var(--text); font-size: 12px; padding: 6px 12px; border-radius: 6px; width: 180px; max-width: 100%;">' +
+      '</div>' +
       '<div id="chatMessages"></div>';
+    
     panel.querySelector('#backToListBtn').addEventListener('click', () => {
       $('#riwayatView').classList.remove('mobile-chat-active');
     });
+    
     const msgEl = panel.querySelector('#chatMessages');
+    const searchInput = panel.querySelector('#searchMessageInput');
+    
+    // Simpan semua elemen bubble ke dalam array agar mudah difilter
+    const bubbles = [];
+    
     if (!history.length) {
       msgEl.innerHTML = '<div class="empty-state">Belum ada riwayat pesan (mungkin sudah kedaluwarsa).</div>';
+      searchInput.style.display = 'none';
       return;
     }
+    
     history.forEach((h) => {
       const bubble = document.createElement('div');
       bubble.className = 'bubble ' + (h.role === 'user' ? 'user' : 'model');
       bubble.textContent = h.text;
       msgEl.appendChild(bubble);
+      bubbles.push({ el: bubble, text: h.text.toLowerCase() });
     });
     msgEl.scrollTop = msgEl.scrollHeight;
+    
+    // Fitur pencarian pesan
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      let hasVisible = false;
+      bubbles.forEach(b => {
+        if (b.text.includes(query)) {
+          b.el.style.display = '';
+          hasVisible = true;
+        } else {
+          b.el.style.display = 'none';
+        }
+      });
+      // Jika butuh fallback ketika kosong (opsional)
+    });
   }
 
   // ---------- Edit FAQ ----------
