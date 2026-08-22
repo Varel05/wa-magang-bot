@@ -371,17 +371,18 @@ body[data-theme="light"] {
   .faq-actions { @apply flex-wrap; }
   .faq-actions button { @apply flex-1 min-w-[140px]; }
   #notifToastContainer { left: 12px; right: 12px; top: 12px; @apply w-auto; }
-  #riwayatView { @apply relative overflow-hidden h-full; }
-  #convList { @apply w-full h-full border-r-0 min-h-0; background: var(--panel); }
-  #chatPanel {
-    @apply absolute inset-0 flex min-h-full;
-    background: var(--bg);
-    transform: translateX(100%);
-    transition: transform 0.18s ease-out;
-    z-index: 2;
+  #riwayatView { @apply relative; }
+  @media (max-width: 768px) {
+    #adminView { @apply relative; }
+    #sidebarContainer { @apply w-full border-r-0; max-width: 100%; }
+    #chatPanel {
+      @apply absolute inset-0 z-20 transition-transform duration-300;
+      background: var(--bg);
+      transform: translateX(100%);
+    }
+    .mobile-chat-active #chatPanel { transform: translateX(0); }
+    .mobile-chat-active #sidebarContainer { display: none !important; }
   }
-  #riwayatView.mobile-chat-active #convList { @apply hidden; }
-  #riwayatView.mobile-chat-active #chatPanel { transform: translateX(0); }
   .back-btn {
     @apply inline-flex items-center justify-center gap-1 bg-transparent border-0 text-[13px] font-semibold rounded-md flex-shrink-0;
     padding: 6px 8px;

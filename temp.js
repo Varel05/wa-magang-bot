@@ -1,65 +1,4 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, nofollow">
-<title>MagangJogja Bot — Admin</title>
-<link rel="stylesheet" href="output.css">
-</head>
-<body>
 
-  <!-- Toast notifikasi pesan baru -->
-  <div id="notifToastContainer"></div>
-
-  <!-- APP -->
-  <div id="app">
-    <header>
-      <div>
-        <p class="eyebrow">MagangJogja Bot</p>
-        <h1>Panel Admin</h1>
-      </div>
-      <div class="header-actions">
-        <!-- 1. Theme Switch -->
-        <div class="theme-switch-group" id="themeToggleGroup" data-state="dark">
-          <svg class="theme-switch-icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
-          <button class="theme-switch" id="themeToggle" type="button" role="switch" aria-checked="false" aria-label="Ganti tema">
-            <span class="theme-switch-thumb"></span>
-          </button>
-          <svg class="theme-switch-icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-        </div>
-
-        <!-- 2. Notification -->
-        <div class="notif-dropdown-wrapper">
-          <button class="notif-btn" id="notifBellBtn" type="button" aria-label="Notifikasi">
-            <svg class="bell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-            <span class="notif-badge" id="notifBadge" style="display: none;"></span>
-          </button>
-          
-          <div class="notif-dropdown" id="notifDropdown">
-            <div class="notif-dropdown-header">Notifikasi Belum Dibaca</div>
-            <div class="notif-dropdown-list" id="notifDropdownList">
-              <div class="empty-state" style="padding: 16px; font-size: 12px;">Tidak ada notifikasi baru.</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3. Logout -->
-        <button class="logout-btn" id="logoutBtn" type="button" aria-label="Keluar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        </button>
-      </div>
-    </header>
-
-    <nav class="tabs">
-      <button data-tab="riwayat" class="active">Riwayat Pesan</button>
-      <button data-tab="faq">Edit FAQ</button>
-    </nav>
-
-    <main id="adminView"></main>
-  </div>
-
-<script>
   const state = { password: null, conversations: [], activeConv: null, lastNotifiedAt: 0, unreadCount: 0, unreadByConv: {}, unreadList: [] };
   const ORIGINAL_TITLE = document.title;
   const THEME_KEY = 'admin-theme';
@@ -119,7 +58,7 @@
   // ---------- Menu ----------
   async function loadView(tab) {
     const view = $('#adminView');
-    const res = await fetch(tab + '.html?t=' + Date.now());
+    const res = await fetch(tab + '.html');
     if (!res.ok) throw new Error('Gagal memuat menu ' + tab + '.');
     view.innerHTML = await res.text();
     document.querySelectorAll('nav.tabs button').forEach((btn) => {
@@ -591,6 +530,3 @@
       btn.disabled = false;
     }
   }
-</script>
-</body>
-</html>
