@@ -1,28 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #121212;
-  --panel: #1e1e1e;
-  --panel-raised: #2c2c2c;
-  --border: #333333;
-  --text: #ffffff;
-  --text-dim: #a3a3a3;
-  --accent: #3b82f6;
-  --accent-strong: #2563eb;
-  --accent-dim: #1e3a8a;
-  --user-text: #ffffff;
+  --bg: #0A1118; /* Latar Belakang Utama */
+  --panel: #121B24; /* Menu, List items */
+  --panel-raised: #202B36;
+  --border: #2A3942;
+  --text: #E9EDEF; /* Teks Utama */
+  --text-dim: #8696A0;
+  --accent: #00A3FF; /* Aksen & Ikon Aktif */
+  --accent-strong: #00A3FF;
+  --accent-dim: #163A5F; /* Gelembung Chat Keluar */
+  --user-text: #E9EDEF;
+  --accent-tick: #54B7FF; /* Centang Dua Dibaca */
   --wa-color: #3ddc84;
   --tg-color: #7c8fd6;
   --danger: #ef4444;
-  --header-bg: rgba(18, 18, 18, 0.9);
-  --header-text: #ffffff;
-  --nav-bg: transparent;
-  --nav-text: #ffffff;
-  --nav-text-dim: #a3a3a3;
-  --sidebar-bg: transparent;
-  --bubble-model-bg: var(--panel);
-  --bubble-model-text: var(--text);
-  --shadow: rgba(0, 0, 0, 0.5);
+  --header-bg: #121B24; /* Header & Bilah Menu */
+  --header-text: #E9EDEF;
+  --nav-bg: #121B24;
+  --nav-text: #E9EDEF;
+  --nav-text-dim: #8696A0;
+  --sidebar-bg: #121B24; /* Sidebar List Chat */
+  --bubble-model-bg: #202B36; /* Gelembung Chat Masuk */
+  --bubble-model-text: #E9EDEF;
+  --shadow: rgba(0, 0, 0, 0.35);
   --chip-wa: rgba(61, 220, 132, 0.15);
   --chip-tg: rgba(124, 143, 214, 0.18);
   --font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
