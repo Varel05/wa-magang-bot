@@ -1,19 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0d1730;
-  --panel: #14224a;
-  --panel-raised: #1c2e5e;
-  --border: #2b3f74;
-  --text: #e7edfa;
-  --text-dim: #9fb0d9;
-  --accent: #4382df;
-  --accent-strong: #5a67d8;
-  --accent-dim: #23345c;
+  --bg: #0a1526;
+  --panel: #111d32;
+  --panel-raised: #182741;
+  --border: #233554;
+  --text: #d8e4f0;
+  --text-dim: #8b9eb5;
+  --accent: #3399ff;
+  --accent-strong: #1a8cff;
+  --accent-dim: #005bb5;
+  --user-text: #ffffff;
   --wa-color: #3ddc84;
   --tg-color: #7c8fd6;
   --danger: #ff5c5c;
-  --header-bg: rgba(13, 23, 48, 0.9);
+  --header-bg: rgba(17, 29, 50, 0.9);
   --shadow: rgba(0, 0, 0, 0.35);
   --chip-wa: rgba(61, 220, 132, 0.15);
   --chip-tg: rgba(124, 143, 214, 0.18);
@@ -22,20 +23,21 @@
   --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
 }
 body[data-theme="light"] {
-  --bg: #eef5f8;
+  --bg: #e8f0fe;
   --panel: #ffffff;
-  --panel-raised: #d7e8ee;
-  --border: #b9d4de;
-  --text: #112e81;
-  --text-dim: #4f6690;
-  --accent: #4382df;
-  --accent-strong: #4647ae;
-  --accent-dim: #dce9f7;
+  --panel-raised: #f1f5fa;
+  --border: #d2e3fc;
+  --text: #1a2b3c;
+  --text-dim: #5f738c;
+  --accent: #1a73e8;
+  --accent-strong: #0f52ba;
+  --accent-dim: #cce4ff;
+  --user-text: #0b1f38;
   --wa-color: #1ea85b;
   --tg-color: #4647ae;
-  --danger: #d94a4a;
+  --danger: #d93025;
   --header-bg: rgba(255, 255, 255, 0.9);
-  --shadow: rgba(17, 46, 129, 0.14);
+  --shadow: rgba(26, 115, 232, 0.14);
   --chip-wa: rgba(30, 168, 91, 0.12);
   --chip-tg: rgba(70, 71, 174, 0.14);
 }
@@ -185,7 +187,7 @@ body[data-theme="light"] {
   #chatMessages { @apply flex-1 overflow-y-auto p-6 flex flex-col gap-3; }
 
   .bubble { @apply max-w-[70%] px-3.5 py-2.5 rounded-xl text-sm leading-relaxed whitespace-pre-wrap shadow-sm; }
-  .bubble.user { @apply self-end rounded-br-sm; background: var(--accent-dim); color: var(--text); }
+  .bubble.user { @apply self-end rounded-br-sm; background: var(--accent-dim); color: var(--user-text); }
   .bubble.model { @apply self-start rounded-bl-sm border; background: var(--panel); color: var(--text); border-color: var(--border); }
 
   .empty-state {
