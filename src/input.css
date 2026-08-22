@@ -60,13 +60,13 @@ body[data-theme="light"] {
 @layer base {
   * { box-sizing: border-box; }
   html, body {
-    @apply m-0 w-full min-h-full;
+    @apply m-0 w-full h-full overflow-hidden;
     background: var(--bg);
     color: var(--text);
     font-family: var(--font-body);
   }
   body {
-    @apply min-h-screen;
+    @apply h-screen;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
@@ -141,7 +141,7 @@ body[data-theme="light"] {
   .logout-btn:hover { border-color: var(--danger); color: var(--danger); @apply shadow-none; }
   .error-text { @apply text-[13px] m-0 min-h-4; color: var(--danger); }
 
-  #app { @apply flex min-h-screen flex-col; }
+  #app { @apply flex h-screen flex-col overflow-hidden; }
   header {
     @apply flex items-center justify-between px-6 py-4 border-b backdrop-blur-md sticky top-0 z-10;
     border-color: var(--border);
