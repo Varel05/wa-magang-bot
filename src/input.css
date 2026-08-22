@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0a1526;
-  --panel: #111d32;
-  --panel-raised: #182741;
-  --border: #233554;
-  --text: #d8e4f0;
-  --text-dim: #8b9eb5;
-  --accent: #3399ff;
-  --accent-strong: #1a8cff;
-  --accent-dim: #005bb5;
+  --bg: #121212;
+  --panel: #1e1e1e;
+  --panel-raised: #2c2c2c;
+  --border: #333333;
+  --text: #ffffff;
+  --text-dim: #a3a3a3;
+  --accent: #3b82f6;
+  --accent-strong: #2563eb;
+  --accent-dim: #1e3a8a;
   --user-text: #ffffff;
   --wa-color: #3ddc84;
   --tg-color: #7c8fd6;
-  --danger: #ff5c5c;
-  --header-bg: rgba(17, 29, 50, 0.9);
-  --shadow: rgba(0, 0, 0, 0.35);
+  --danger: #ef4444;
+  --header-bg: rgba(18, 18, 18, 0.9);
+  --shadow: rgba(0, 0, 0, 0.5);
   --chip-wa: rgba(61, 220, 132, 0.15);
   --chip-tg: rgba(124, 143, 214, 0.18);
   --font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
@@ -23,21 +23,21 @@
   --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
 }
 body[data-theme="light"] {
-  --bg: #e8f0fe;
+  --bg: #f3f6f9;
   --panel: #ffffff;
-  --panel-raised: #f1f5fa;
-  --border: #d2e3fc;
-  --text: #1a2b3c;
-  --text-dim: #5f738c;
-  --accent: #1a73e8;
-  --accent-strong: #0f52ba;
-  --accent-dim: #cce4ff;
-  --user-text: #0b1f38;
+  --panel-raised: #e9f0f7;
+  --border: #d5e1ec;
+  --text: #1e293b;
+  --text-dim: #64748b;
+  --accent: #3b82f6;
+  --accent-strong: #2563eb;
+  --accent-dim: #dbeafe;
+  --user-text: #0f172a;
   --wa-color: #1ea85b;
   --tg-color: #4647ae;
-  --danger: #d93025;
+  --danger: #dc2626;
   --header-bg: rgba(255, 255, 255, 0.9);
-  --shadow: rgba(26, 115, 232, 0.14);
+  --shadow: rgba(0, 0, 0, 0.08);
   --chip-wa: rgba(30, 168, 91, 0.12);
   --chip-tg: rgba(70, 71, 174, 0.14);
 }
