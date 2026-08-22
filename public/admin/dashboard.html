@@ -20,11 +20,13 @@
         <h1>Panel Admin</h1>
       </div>
       <div class="header-actions">
-        <button class="theme-switch" id="themeToggle" type="button" role="switch" aria-checked="false" aria-label="Ganti tema" data-state="dark">
+        <div class="theme-switch-group" id="themeToggleGroup" data-state="dark">
           <svg class="theme-switch-icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          <button class="theme-switch" id="themeToggle" type="button" role="switch" aria-checked="false" aria-label="Ganti tema">
+            <span class="theme-switch-thumb"></span>
+          </button>
           <svg class="theme-switch-icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-          <span class="theme-switch-thumb"></span>
-        </button>
+        </div>
         <button class="secondary logout-btn" id="logoutBtn" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           <span>Keluar</span>
@@ -50,9 +52,10 @@
   function applyTheme(theme) {
     const next = (theme === 'light' ? 'light' : 'dark');
     document.body.setAttribute('data-theme', next);
+    const group = $('#themeToggleGroup');
     const btn = $('#themeToggle');
+    if (group) group.setAttribute('data-state', next);
     if (btn) {
-      btn.setAttribute('data-state', next);
       btn.setAttribute('aria-checked', next === 'light' ? 'true' : 'false');
       btn.setAttribute('aria-label', next === 'light' ? 'Ganti ke mode gelap' : 'Ganti ke mode terang');
     }

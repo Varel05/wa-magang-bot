@@ -84,33 +84,35 @@ body[data-theme="light"] {
 
   .header-actions { @apply flex items-center gap-3; }
 
+  .theme-switch-group { @apply inline-flex items-center gap-2 flex-shrink-0; }
+  .theme-switch-icon {
+    @apply flex-shrink-0 transition-opacity duration-200;
+    width: 15px;
+    height: 15px;
+  }
+  .theme-switch-icon.icon-sun { color: #e8a53d; }
+  .theme-switch-icon.icon-moon { color: #7c8fd6; }
+  .theme-switch-group[data-state="dark"] .icon-sun { opacity: 0.4; }
+  .theme-switch-group[data-state="light"] .icon-moon { opacity: 0.4; }
+
   .theme-switch {
-    @apply relative inline-flex items-center rounded-full border cursor-pointer flex-shrink-0 transition-colors duration-200;
-    width: 52px;
-    height: 28px;
-    padding: 3px;
+    @apply relative inline-flex items-center rounded-full border-2 cursor-pointer flex-shrink-0 transition-colors duration-200;
+    width: 40px;
+    height: 22px;
+    padding: 2px;
     background: var(--panel-raised);
-    border-color: var(--border);
+    border-color: color-mix(in srgb, var(--text) 22%, var(--border));
   }
   .theme-switch:hover { border-color: var(--accent); }
-  .theme-switch-icon {
-    @apply absolute top-1/2 -translate-y-1/2 pointer-events-none transition-opacity duration-200;
-    width: 14px;
-    height: 14px;
-  }
-  .theme-switch-icon.icon-sun { left: 6px; color: #f5b942; }
-  .theme-switch-icon.icon-moon { right: 6px; color: #a9b8ff; }
   .theme-switch-thumb {
     @apply absolute rounded-full shadow-md transition-transform duration-200 ease-out;
-    top: 3px;
-    left: 3px;
-    width: 22px;
-    height: 22px;
+    top: 1px;
+    left: 1px;
+    width: 16px;
+    height: 16px;
     background: var(--accent);
   }
-  .theme-switch[data-state="dark"] .theme-switch-thumb { transform: translateX(24px); }
-  .theme-switch[data-state="dark"] .icon-sun { opacity: 0.35; }
-  .theme-switch[data-state="light"] .icon-moon { opacity: 0.35; }
+  .theme-switch-group[data-state="dark"] .theme-switch-thumb { transform: translateX(18px); }
 
   .logout-btn {
     @apply inline-flex items-center gap-2 leading-none whitespace-nowrap;
@@ -262,16 +264,15 @@ body[data-theme="light"] {
   header { padding: 14px 16px; @apply gap-3 flex-wrap; }
   header h1 { @apply text-base; }
   .header-actions { @apply gap-2; }
+  .theme-switch-group { @apply gap-1.5; }
+  .theme-switch-icon { width: 13px; height: 13px; }
   .theme-switch {
-    width: 44px;
-    height: 24px;
+    width: 34px;
+    height: 19px;
     padding: 2px;
   }
-  .theme-switch-thumb { width: 18px; height: 18px; }
-  .theme-switch[data-state="dark"] .theme-switch-thumb { transform: translateX(20px); }
-  .theme-switch-icon { width: 11px; height: 11px; }
-  .theme-switch-icon.icon-sun { left: 4px; }
-  .theme-switch-icon.icon-moon { right: 4px; }
+  .theme-switch-thumb { width: 13px; height: 13px; }
+  .theme-switch-group[data-state="dark"] .theme-switch-thumb { transform: translateX(15px); }
   .logout-btn { padding: 7px 11px; font-size: 12.5px; gap: 5px; min-height: 32px; }
   .logout-btn svg { width: 14px; height: 14px; }
   nav.tabs { padding: 0 16px; @apply overflow-x-auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
@@ -283,7 +284,7 @@ body[data-theme="light"] {
   .faq-actions button { @apply flex-1 min-w-[140px]; }
   #notifToastContainer { left: 12px; right: 12px; top: 12px; @apply w-auto; }
   #riwayatView { @apply relative overflow-hidden h-full; }
-  #convList { @apply w-full h-full border-r-0 min-h-0; background: #111827; }
+  #convList { @apply w-full h-full border-r-0 min-h-0; background: var(--panel); }
   #chatPanel {
     @apply absolute inset-0 flex min-h-full;
     background: var(--bg);
@@ -300,7 +301,7 @@ body[data-theme="light"] {
     min-height: 32px;
     color: var(--accent);
   }
-  #chatHeader { @apply sticky top-0 z-[1]; background: #1a1f2d; border-bottom-color: var(--border); }
+  #chatHeader { @apply sticky top-0 z-[1]; background: var(--panel); border-bottom-color: var(--border); }
   .conv-item { padding: 14px 12px 14px 16px; }
   .edit-name-btn { padding: 6px 10px; }
   .bubble { @apply max-w-[85%]; }
