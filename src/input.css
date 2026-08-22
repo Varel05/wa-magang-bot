@@ -30,26 +30,27 @@
   --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
 }
 body[data-theme="light"] {
-  --bg: #C8DFDB; /* Background chat */
+  --bg: #EAECEF; /* Latar Belakang Obrolan */
   --panel: #ffffff;
-  --panel-raised: rgba(255, 255, 255, 0.3);
-  --border: rgba(255, 255, 255, 0.4);
+  --panel-raised: #f1f5f9;
+  --border: #d1d5db;
   --text: #0f172a;
   --text-dim: #334155;
-  --accent: #0f172a;
-  --accent-strong: #1e3a8a;
-  --accent-dim: #66A3BF; /* Bubble chat penanya */
-  --user-text: #ffffff;
+  --accent: #328CC1; /* Royal Blue (tombol aksi, aksen) */
+  --accent-strong: #00A7E1; /* Electric Blue (ikon notifikasi, status aktif) */
+  --accent-dim: #D2E7F9; /* Gelembung chat keluar */
+  --user-text: #0B3C5D; /* Teks di dalam chat keluar */
+  --accent-tick: #005B94; /* Aksen centang biru kontras */
   --wa-color: #1ea85b;
   --tg-color: #4647ae;
   --danger: #dc2626;
-  --header-bg: #3368A0; /* Header */
+  --header-bg: #0B3C5D; /* Biru Tua (header) */
   --header-text: #ffffff;
-  --nav-bg: #3368A0; /* Top navbar */
+  --nav-bg: #328CC1; /* Biru Klasik (top navbar) */
   --nav-text: #ffffff;
   --nav-text-dim: rgba(255, 255, 255, 0.75);
-  --sidebar-bg: #66A3BF; /* Side navbar */
-  --bubble-model-bg: #F2EFE7; /* Bubble chat AI */
+  --sidebar-bg: #ffffff; /* Panel bersih */
+  --bubble-model-bg: #F1F1F4; /* Gelembung chat masuk */
   --bubble-model-text: #0f172a;
   --shadow: rgba(0, 0, 0, 0.1);
   --chip-wa: rgba(30, 168, 91, 0.12);
@@ -189,7 +190,7 @@ body[data-theme="light"] {
     font-family: var(--font-mono);
     color: var(--text);
   }
-  .unread-dot { @apply w-2 h-2 rounded-full flex-shrink-0 animate-pulse; background: var(--accent); }
+  .unread-dot { @apply w-2 h-2 rounded-full flex-shrink-0 animate-pulse; background: var(--accent-strong); }
   .edit-name-btn {
     @apply bg-transparent border px-2.5 py-1 rounded text-xs font-medium flex-shrink-0 shadow-none transition-colors duration-150;
     border-color: var(--border);
@@ -250,7 +251,7 @@ body[data-theme="light"] {
   .notif-btn.has-unread svg { animation: ring 4s infinite; }
   .notif-badge {
     @apply absolute top-[6px] right-[8px] w-[10px] h-[10px] rounded-full border-2;
-    background: var(--danger); border-color: var(--header-bg);
+    background: var(--accent-strong); border-color: var(--header-bg);
   }
   
   .notif-dropdown {
