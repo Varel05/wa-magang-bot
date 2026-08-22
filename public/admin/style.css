@@ -28,6 +28,7 @@ button { background: var(--accent); color: #1a1108; border: none; border-radius:
 button:hover { filter: brightness(1.08); }
 button:disabled { opacity: 0.5; cursor: not-allowed; }
 button.secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.logout-btn { display: inline-flex; align-items: center; gap: 8px; }
 .header-actions { display: flex; align-items: center; gap: 10px; }
 .theme-toggle { min-width: 120px; justify-content: center; }
 .error-text { color: var(--danger); font-size: 13px; margin: 0; min-height: 16px; }
