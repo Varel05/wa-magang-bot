@@ -329,7 +329,7 @@
     let hasMatch = false;
 
     state.conversations.forEach((conv) => {
-      const label = conv.name ? conv.name : conv.id;
+      const label = String(conv.name ? conv.name : conv.id);
       if (query && !label.toLowerCase().includes(query)) return;
       
       hasMatch = true;
@@ -429,7 +429,7 @@
     }
   }
 
-  const escapeHTML = (str) => str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+  const escapeHTML = (str) => String(str || '').replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
 
   function renderChat(conv, history) {
     const panel = $('#chatPanel');
@@ -470,7 +470,7 @@
       bubble.className = 'bubble ' + (h.role === 'user' ? 'user' : 'model');
       bubble.innerHTML = escapeHTML(h.text);
       msgEl.appendChild(bubble);
-      bubbles.push({ el: bubble, text: h.text, id: idx });
+      bubbles.push({ el: bubble, text: String(h.text || ''), id: idx });
     });
     msgEl.scrollTop = msgEl.scrollHeight;
     
@@ -504,7 +504,8 @@
         if (b.text.toLowerCase().includes(query)) {
           // highlight matches
           // escape query for regex
-          const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')})`, 'gi');
+          const escapeRegExp = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const regex = new RegExp('(' + escapeRegExp(query) + ')', 'gi');
           b.el.innerHTML = escapeHTML(b.text).replace(regex, '<mark class="search-highlight">$1</mark>');
           
           const marks = Array.from(b.el.querySelectorAll('mark.search-highlight'));
