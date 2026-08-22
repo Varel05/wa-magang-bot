@@ -241,6 +241,43 @@ body[data-theme="light"] {
   .notif-toast .notif-title { @apply font-semibold mb-1; }
   .notif-toast .notif-preview { @apply overflow-hidden text-ellipsis whitespace-nowrap; color: var(--text-dim); }
 
+  /* Notifikasi Dropdown Header */
+  .notif-dropdown-wrapper { @apply relative inline-block; }
+  .notif-btn { @apply relative flex items-center justify-center p-2 rounded-full bg-transparent border-0 shadow-none; width: 38px; height: 38px; color: var(--header-text); }
+  .notif-btn:hover { background: color-mix(in srgb, var(--header-text) 10%, transparent); }
+  .notif-btn svg { @apply transition-transform; }
+  .notif-btn.has-unread { color: var(--header-text); }
+  .notif-btn.has-unread svg { animation: ring 4s infinite; }
+  .notif-badge {
+    @apply absolute top-[6px] right-[8px] w-[10px] h-[10px] rounded-full border-2;
+    background: var(--danger); border-color: var(--header-bg);
+  }
+  
+  .notif-dropdown {
+    @apply absolute right-0 mt-2 w-[320px] rounded-xl border shadow-xl opacity-0 pointer-events-none transition-all duration-200 z-50;
+    top: 100%;
+    background: var(--panel);
+    border-color: var(--border);
+    transform: translateY(-8px);
+  }
+  .notif-dropdown.show { @apply opacity-100 pointer-events-auto; transform: translateY(0); }
+  
+  .notif-dropdown-header {
+    @apply px-4 py-3 border-b text-[13px] font-semibold;
+    border-color: var(--border); color: var(--text);
+  }
+  .notif-dropdown-list { @apply max-h-[300px] overflow-y-auto; }
+  
+  .dropdown-notif-item {
+    @apply p-4 border-b cursor-pointer transition-colors text-left;
+    border-color: var(--border);
+  }
+  .dropdown-notif-item:last-child { border-bottom: none; }
+  .dropdown-notif-item:hover { background: var(--panel-raised); }
+  .dropdown-notif-item .notif-title { @apply text-[13px] font-semibold mb-1; color: var(--text); }
+  .dropdown-notif-item .notif-preview { @apply text-[12px] truncate; color: var(--text-dim); }
+  .dropdown-notif-item .notif-time { @apply text-[10px] mt-1.5; color: var(--text-dim); opacity: 0.8; }
+
   .back-btn { @apply hidden; }
 
   /* Login page */
@@ -280,6 +317,12 @@ body[data-theme="light"] {
 @keyframes notifIn {
   from { opacity: 0; transform: translateX(20px); }
   to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes ring {
+  0%, 10%, 20%, 30%, 100% { transform: rotate(0); }
+  5%, 25% { transform: rotate(15deg); }
+  15% { transform: rotate(-15deg); }
 }
 
 @keyframes fadeInUp {

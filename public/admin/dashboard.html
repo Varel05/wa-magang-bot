@@ -20,6 +20,19 @@
         <h1>Panel Admin</h1>
       </div>
       <div class="header-actions">
+        <div class="notif-dropdown-wrapper">
+          <button class="secondary notif-btn" id="notifBellBtn" type="button" aria-label="Notifikasi">
+            <svg class="bell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <span class="notif-badge" id="notifBadge" style="display: none;"></span>
+          </button>
+          
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-dropdown-header">Notifikasi Belum Dibaca</div>
+            <div class="notif-dropdown-list" id="notifDropdownList">
+              <div class="empty-state" style="padding: 16px; font-size: 12px;">Tidak ada notifikasi baru.</div>
+            </div>
+          </div>
+        </div>
         <div class="theme-switch-group" id="themeToggleGroup" data-state="dark">
           <svg class="theme-switch-icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
           <button class="theme-switch" id="themeToggle" type="button" role="switch" aria-checked="false" aria-label="Ganti tema">
@@ -43,7 +56,7 @@
   </div>
 
 <script>
-  const state = { password: null, conversations: [], activeConv: null, lastNotifiedAt: 0, unreadCount: 0, unreadByConv: {} };
+  const state = { password: null, conversations: [], activeConv: null, lastNotifiedAt: 0, unreadCount: 0, unreadByConv: {}, unreadList: [] };
   const ORIGINAL_TITLE = document.title;
   const THEME_KEY = 'admin-theme';
 
@@ -127,6 +140,22 @@
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
+    
+    // Inisialisasi tombol notifikasi dropdown
+    const bellBtn = $('#notifBellBtn');
+    if (bellBtn) {
+      bellBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        $('#notifDropdown').classList.toggle('show');
+      });
+      document.addEventListener('click', (e) => {
+        const dd = $('#notifDropdown');
+        if (dd && dd.classList.contains('show') && !e.target.closest('.notif-dropdown-wrapper')) {
+          dd.classList.remove('show');
+        }
+      });
+    }
+
     setInterval(pollNotifications, 6000);
   }
 
@@ -157,6 +186,17 @@
       state.unreadByConv[key] = true;
       state.unreadCount += 1;
       updateTabTitle();
+      
+      // Add to dropdown list
+      state.unreadList = state.unreadList.filter((n) => !(n.channel === notif.channel && n.contactId === notif.contactId));
+      state.unreadList.unshift({
+        channel: notif.channel,
+        contactId: notif.contactId,
+        title: label,
+        preview: notif.preview,
+        time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+      });
+      updateNotifDropdown();
     }
 
     // Kalau kontaknya belum ada di daftar (chat pertama dari orang baru), muat ulang daftar
@@ -165,6 +205,48 @@
     renderConvList();
     showToast(label, notif.preview, notif.channel, notif.contactId);
     showBrowserNotification(label, notif.preview, notif.channel, notif.contactId);
+  }
+
+  function updateNotifDropdown() {
+    const badge = $('#notifBadge');
+    const bellBtn = $('#notifBellBtn');
+    if (!badge || !bellBtn) return;
+    
+    if (state.unreadList.length > 0) {
+      badge.style.display = 'block';
+      bellBtn.classList.add('has-unread');
+    } else {
+      badge.style.display = 'none';
+      bellBtn.classList.remove('has-unread');
+    }
+    
+    const listEl = $('#notifDropdownList');
+    if (!listEl) return;
+    if (state.unreadList.length === 0) {
+      listEl.innerHTML = '<div class="empty-state" style="padding: 16px; font-size: 12px;">Tidak ada notifikasi baru.</div>';
+      return;
+    }
+    
+    listEl.innerHTML = '';
+    state.unreadList.forEach((n) => {
+      const item = document.createElement('div');
+      item.className = 'dropdown-notif-item';
+      item.innerHTML = 
+        '<div class="notif-title">' + (n.channel === 'whatsapp' ? '📱' : '✈️') + ' ' + n.title + '</div>' +
+        '<div class="notif-preview">' + n.preview + '</div>' + 
+        '<div class="notif-time">' + n.time + '</div>';
+        
+      item.addEventListener('click', () => {
+        $('#notifDropdown').classList.remove('show');
+        document.querySelector('nav.tabs button[data-tab="riwayat"]').click();
+        const conv = state.conversations.find((c) => c.channel === n.channel && c.id === String(n.contactId));
+        if (conv) {
+          const itemEl = Array.from(document.querySelectorAll('.conv-item')).find((it) => it.dataset.key === n.channel + ':' + n.contactId);
+          if (itemEl) selectConv(conv, itemEl);
+        }
+      });
+      listEl.appendChild(item);
+    });
   }
 
   function updateTabTitle() {
@@ -298,6 +380,12 @@
       renderConvList();
       itemEl = document.querySelector('.conv-item[data-key="' + key + '"]');
       if (itemEl) itemEl.classList.add('active');
+    }
+    
+    // Hapus dari dropdown
+    if (state.unreadList) {
+       state.unreadList = state.unreadList.filter(n => !(n.channel === conv.channel && n.contactId === String(conv.id)));
+       updateNotifDropdown();
     }
 
     $('#chatPanel').innerHTML = '<div class="empty-state">Memuat riwayat…</div>';
