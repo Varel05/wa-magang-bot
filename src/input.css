@@ -220,6 +220,17 @@ body[data-theme="light"] {
   .bubble.user { @apply self-end rounded-br-sm; background: var(--accent-dim); color: var(--user-text); }
   .bubble.model { @apply self-start rounded-bl-sm border; background: var(--bubble-model-bg); color: var(--bubble-model-text); border-color: var(--border); }
 
+  mark.search-highlight {
+    background-color: var(--accent);
+    color: var(--header-text);
+    padding: 0 2px;
+    border-radius: 3px;
+  }
+  mark.search-highlight.active {
+    background-color: var(--danger);
+    color: #fff;
+  }
+
   .empty-state {
     @apply flex-1 flex flex-col items-center justify-center text-center px-6 gap-2.5 text-[13px];
     color: var(--text-dim);

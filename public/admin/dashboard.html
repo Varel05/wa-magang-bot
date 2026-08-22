@@ -429,6 +429,8 @@
     }
   }
 
+  const escapeHTML = (str) => str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+
   function renderChat(conv, history) {
     const panel = $('#chatPanel');
     const label = conv.name ? conv.name + ' (' + conv.id + ')' : conv.id;
@@ -436,9 +438,13 @@
       '<div id="chatHeader" class="justify-between" style="flex-wrap: wrap;">' +
         '<div style="display: flex; gap: 8px; align-items: center; overflow: hidden; min-width: 150px; flex: 1;">' +
           '<button class="back-btn" id="backToListBtn">← Kembali</button>' +
-          '<div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + (conv.channel === 'whatsapp' ? 'WhatsApp' : 'Telegram') + ' · ' + label + '</div>' +
+          '<div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + (conv.channel === 'whatsapp' ? 'WhatsApp' : 'Telegram') + ' · ' + escapeHTML(label) + '</div>' +
         '</div>' +
-        '<input type="text" id="searchMessageInput" placeholder="Cari pesan..." style="background: var(--bg); border: 1px solid var(--border); color: var(--text); font-size: 12px; padding: 6px 12px; border-radius: 6px; width: 180px; max-width: 100%;">' +
+        '<div style="display: flex; gap: 6px; align-items: center;">' +
+          '<input type="text" id="searchMessageInput" placeholder="Cari pesan..." style="background: var(--bg); border: 1px solid var(--border); color: var(--text); font-size: 12px; padding: 6px 12px; border-radius: 6px; width: 160px; max-width: 100%;">' +
+          '<button id="searchUpBtn" class="secondary" style="padding: 4px 8px; min-height: 28px; display: none;">↑</button>' +
+          '<button id="searchDownBtn" class="secondary" style="padding: 4px 8px; min-height: 28px; display: none;">↓</button>' +
+        '</div>' +
       '</div>' +
       '<div id="chatMessages"></div>';
     
@@ -448,8 +454,9 @@
     
     const msgEl = panel.querySelector('#chatMessages');
     const searchInput = panel.querySelector('#searchMessageInput');
+    const upBtn = panel.querySelector('#searchUpBtn');
+    const downBtn = panel.querySelector('#searchDownBtn');
     
-    // Simpan semua elemen bubble ke dalam array agar mudah difilter
     const bubbles = [];
     
     if (!history.length) {
@@ -458,28 +465,81 @@
       return;
     }
     
-    history.forEach((h) => {
+    history.forEach((h, idx) => {
       const bubble = document.createElement('div');
       bubble.className = 'bubble ' + (h.role === 'user' ? 'user' : 'model');
-      bubble.textContent = h.text;
+      bubble.innerHTML = escapeHTML(h.text);
       msgEl.appendChild(bubble);
-      bubbles.push({ el: bubble, text: h.text.toLowerCase() });
+      bubbles.push({ el: bubble, text: h.text, id: idx });
     });
     msgEl.scrollTop = msgEl.scrollHeight;
     
-    // Fitur pencarian pesan
-    searchInput.addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase();
-      let hasVisible = false;
+    let currentMatchIndex = -1;
+    let matches = [];
+
+    function focusMatch() {
+      if (matches.length === 0) return;
+      matches.forEach(m => m.classList.remove('active'));
+      const activeMark = matches[currentMatchIndex];
+      if (activeMark) {
+        activeMark.classList.add('active');
+        activeMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    function performSearch() {
+      const query = searchInput.value.toLowerCase();
+      
+      matches = [];
+      currentMatchIndex = -1;
+
+      if (!query) {
+        bubbles.forEach(b => { b.el.innerHTML = escapeHTML(b.text); });
+        upBtn.style.display = 'none';
+        downBtn.style.display = 'none';
+        return;
+      }
+
       bubbles.forEach(b => {
-        if (b.text.includes(query)) {
-          b.el.style.display = '';
-          hasVisible = true;
+        if (b.text.toLowerCase().includes(query)) {
+          // highlight matches
+          // escape query for regex
+          const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')})`, 'gi');
+          b.el.innerHTML = escapeHTML(b.text).replace(regex, '<mark class="search-highlight">$1</mark>');
+          
+          const marks = Array.from(b.el.querySelectorAll('mark.search-highlight'));
+          matches.push(...marks);
         } else {
-          b.el.style.display = 'none';
+          b.el.innerHTML = escapeHTML(b.text);
         }
       });
-      // Jika butuh fallback ketika kosong (opsional)
+
+      if (matches.length > 0) {
+        upBtn.style.display = 'inline-flex';
+        downBtn.style.display = 'inline-flex';
+        // Jump to the most recent match
+        currentMatchIndex = matches.length - 1;
+        focusMatch();
+      } else {
+        upBtn.style.display = 'none';
+        downBtn.style.display = 'none';
+      }
+    }
+
+    searchInput.addEventListener('input', performSearch);
+    
+    upBtn.addEventListener('click', () => {
+      if (matches.length === 0) return;
+      currentMatchIndex--;
+      if (currentMatchIndex < 0) currentMatchIndex = matches.length - 1;
+      focusMatch();
+    });
+
+    downBtn.addEventListener('click', () => {
+      if (matches.length === 0) return;
+      currentMatchIndex++;
+      if (currentMatchIndex >= matches.length) currentMatchIndex = 0;
+      focusMatch();
     });
   }
 
