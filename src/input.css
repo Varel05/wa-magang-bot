@@ -135,11 +135,16 @@ body[data-theme="light"] {
   .theme-switch-group[data-state="dark"] .theme-switch-thumb { transform: translateX(18px); }
 
   .logout-btn {
-    @apply inline-flex items-center gap-2 leading-none whitespace-nowrap;
+    @apply relative flex items-center justify-center p-2 rounded-full bg-transparent border-0 shadow-none; 
+    width: 38px; height: 38px; color: var(--header-text);
   }
-  .logout-btn svg { @apply flex-shrink-0; }
-  .logout-btn span { @apply leading-none; }
-  .logout-btn:hover { border-color: var(--danger); color: var(--danger); @apply shadow-none; }
+  .logout-btn svg { @apply flex-shrink-0 transition-transform; }
+  .logout-btn:hover { 
+    background: color-mix(in srgb, var(--danger) 15%, transparent); 
+    color: var(--danger);
+    filter: none;
+    @apply shadow-none;
+  }
   .error-text { @apply text-[13px] m-0 min-h-4; color: var(--danger); }
 
   #app { @apply flex h-screen flex-col overflow-hidden; }
@@ -246,7 +251,7 @@ body[data-theme="light"] {
   /* Notifikasi Dropdown Header */
   .notif-dropdown-wrapper { @apply relative inline-block; }
   .notif-btn { @apply relative flex items-center justify-center p-2 rounded-full bg-transparent border-0 shadow-none; width: 38px; height: 38px; color: var(--header-text); }
-  .notif-btn:hover { background: color-mix(in srgb, var(--header-text) 10%, transparent); }
+  .notif-btn:hover { background: color-mix(in srgb, var(--header-text) 10%, transparent); filter: none; @apply shadow-none; }
   .notif-btn svg { @apply transition-transform; }
   .notif-btn.has-unread { color: var(--header-text); }
   .notif-btn.has-unread svg { animation: ring 4s infinite; }
