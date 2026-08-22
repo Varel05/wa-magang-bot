@@ -112,6 +112,11 @@ body[data-theme="light"] {
   .theme-switch[data-state="dark"] .icon-sun { opacity: 0.35; }
   .theme-switch[data-state="light"] .icon-moon { opacity: 0.35; }
 
+  .logout-btn {
+    @apply inline-flex items-center gap-2 leading-none whitespace-nowrap;
+  }
+  .logout-btn svg { @apply flex-shrink-0; }
+  .logout-btn span { @apply leading-none; }
   .logout-btn:hover { border-color: var(--danger); color: var(--danger); @apply shadow-none; }
   .error-text { @apply text-[13px] m-0 min-h-4; color: var(--danger); }
 
@@ -256,7 +261,19 @@ body[data-theme="light"] {
 @media (max-width: 860px) {
   header { padding: 14px 16px; @apply gap-3 flex-wrap; }
   header h1 { @apply text-base; }
-  header .secondary { @apply w-full min-h-[40px]; }
+  .header-actions { @apply gap-2; }
+  .theme-switch {
+    width: 44px;
+    height: 24px;
+    padding: 2px;
+  }
+  .theme-switch-thumb { width: 18px; height: 18px; }
+  .theme-switch[data-state="dark"] .theme-switch-thumb { transform: translateX(20px); }
+  .theme-switch-icon { width: 11px; height: 11px; }
+  .theme-switch-icon.icon-sun { left: 4px; }
+  .theme-switch-icon.icon-moon { right: 4px; }
+  .logout-btn { padding: 7px 11px; font-size: 12.5px; gap: 5px; min-height: 32px; }
+  .logout-btn svg { width: 14px; height: 14px; }
   nav.tabs { padding: 0 16px; @apply overflow-x-auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
   nav.tabs::-webkit-scrollbar { display: none; }
   nav.tabs button { margin-right: 18px; padding: 12px 2px; @apply whitespace-nowrap flex-shrink-0; }
