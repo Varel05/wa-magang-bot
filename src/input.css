@@ -1,41 +1,43 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #12151c;
-  --panel: #1a1e28;
-  --panel-raised: #212635;
-  --border: #2b3040;
-  --text: #e8e9ee;
-  --text-dim: #8b8fa3;
-  --accent: #ff8a3d;
-  --accent-dim: #4a3626;
+  --bg: #0d1730;
+  --panel: #14224a;
+  --panel-raised: #1c2e5e;
+  --border: #2b3f74;
+  --text: #e7edfa;
+  --text-dim: #9fb0d9;
+  --accent: #4382df;
+  --accent-strong: #5a67d8;
+  --accent-dim: #23345c;
   --wa-color: #3ddc84;
-  --tg-color: #4dabf7;
+  --tg-color: #7c8fd6;
   --danger: #ff5c5c;
-  --header-bg: rgba(18, 21, 28, 0.9);
-  --shadow: rgba(0, 0, 0, 0.28);
+  --header-bg: rgba(13, 23, 48, 0.9);
+  --shadow: rgba(0, 0, 0, 0.35);
   --chip-wa: rgba(61, 220, 132, 0.15);
-  --chip-tg: rgba(77, 171, 247, 0.15);
+  --chip-tg: rgba(124, 143, 214, 0.18);
   --font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
   --font-body: 'Inter', 'Segoe UI', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
 }
 body[data-theme="light"] {
-  --bg: #f3f6fb;
+  --bg: #eef5f8;
   --panel: #ffffff;
-  --panel-raised: #eef3fb;
-  --border: #d8e1f0;
-  --text: #1b2430;
-  --text-dim: #657287;
-  --accent: #ff8a3d;
-  --accent-dim: #ffe8d8;
+  --panel-raised: #d7e8ee;
+  --border: #b9d4de;
+  --text: #112e81;
+  --text-dim: #4f6690;
+  --accent: #4382df;
+  --accent-strong: #4647ae;
+  --accent-dim: #dce9f7;
   --wa-color: #1ea85b;
-  --tg-color: #1d72d8;
+  --tg-color: #4647ae;
   --danger: #d94a4a;
   --header-bg: rgba(255, 255, 255, 0.9);
-  --shadow: rgba(15, 23, 42, 0.12);
+  --shadow: rgba(17, 46, 129, 0.14);
   --chip-wa: rgba(30, 168, 91, 0.12);
-  --chip-tg: rgba(29, 114, 216, 0.12);
+  --chip-tg: rgba(70, 71, 174, 0.14);
 }
 
 @layer base {
@@ -68,8 +70,8 @@ body[data-theme="light"] {
 
   button {
     @apply rounded-md border-0 px-4 py-2.5 text-sm font-semibold cursor-pointer transition-all duration-150;
-    background: var(--accent);
-    color: #1a1108;
+    background: var(--accent-strong);
+    color: #ffffff;
     font-family: var(--font-body);
   }
   button:hover { filter: brightness(1.08); @apply shadow-md; }
@@ -243,8 +245,8 @@ body[data-theme="light"] {
   .login-page input:focus { border-color: var(--accent); }
   .login-page button {
     @apply border-0 font-semibold cursor-pointer;
-    background: var(--accent);
-    color: #1a1108;
+    background: var(--accent-strong);
+    color: #ffffff;
   }
   .login-page button:disabled { @apply opacity-50 cursor-wait; }
   .login-page .error { @apply m-0 text-[13px] min-h-4; color: var(--danger); }
