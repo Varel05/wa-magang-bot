@@ -85,12 +85,12 @@ export default async function handler(req, res) {
       const firstTime = await isFirstMessage('whatsapp', from);
       if (firstTime) {
         try {
+          await appendToHistory('whatsapp', from, text, GREETING_MESSAGE);
           await delayForTyping(GREETING_MESSAGE);
           await sendWhatsAppMessage(from, GREETING_MESSAGE);
-          await appendToHistory('whatsapp', from, text, GREETING_MESSAGE);
           console.log(`👋 Perkenalan terkirim untuk ${from}`);
         } catch (err) {
-          console.error(`❌ Gagal kirim perkenalan untuk ${from}`);
+          console.error(`❌ Gagal memproses pesan pertama WhatsApp untuk ${from}:`, err.message);
         }
         return res.status(200).send('OK');
       }
