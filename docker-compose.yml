@@ -1,0 +1,67 @@
+name: wa-magang-bot
+
+services:
+  # WhatsApp engine self-hosted — menggantikan WhatsApp Cloud API (Meta) yang akunnya kena disable.
+  # Login lewat QR code (scan pakai HP yang WhatsApp-nya mau dijadikan bot), bukan lagi App Meta.
+  waha:
+    image: devlikeapro/waha:latest
+    restart: unless-stopped
+    environment:
+      WAHA_API_KEY: ${WAHA_API_KEY}
+      WAHA_PRINT_QR: "true" # QR juga muncul di `docker compose logs -f waha` kalau dashboard susah diakses
+      WHATSAPP_RESTART_ALL_SESSIONS: "true" # auto-nyalain lagi session "default" tiap container restart
+      # Bot (service di bawah) menerima event pesan masuk di sini lewat network internal Docker.
+      WHATSAPP_HOOK_URL: http://bot:3080/api/webhook
+      WHATSAPP_HOOK_EVENTS: message
+      WHATSAPP_HOOK_CUSTOM_HEADERS: X-Webhook-Secret:${WAHA_WEBHOOK_SECRET}
+    volumes:
+      - waha_sessions:/app/.sessions
+    networks: [botnet]
+    # Port 3000 cuma perlu diexpose ke host kalau mau buka dashboard WAHA (scan QR) dari browser
+    # laptop yang sama dengan Docker-nya. Kalau sudah pakai Tailscale, boleh dihapus baris ini
+    # dan akses dashboard lewat tailscale serve (lihat README-WAHA.md).
+    ports:
+      - "3000:3000"
+
+  # Kode chatbot kamu (webhook WhatsApp/Telegram, panel admin, FAQ, dst) — tidak berubah logikanya,
+  # cuma channel WhatsApp-nya sekarang lewat WAHA, bukan Meta Cloud API.
+  bot:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: 3080
+      WAHA_BASE_URL: http://waha:3000
+    depends_on:
+      - waha
+    networks: [botnet]
+    ports:
+      - "3080:3080" # akses lokal (mis. buat testing sebelum tailscale nyala): http://localhost:3080/admin
+
+  # Sidecar Tailscale — join tailnet kamu, network-nya di-share dengan container "bot" (network_mode:
+  # service:bot) supaya bisa expose panel admin (dan WAHA dashboard) ke tailnet tanpa buka port router.
+  tailscale:
+    image: tailscale/tailscale:latest
+    restart: unless-stopped
+    hostname: magangjogja-bot
+    environment:
+      TS_AUTHKEY: ${TS_AUTHKEY}
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_USERSPACE: "false"
+    volumes:
+      - tailscale_state:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    network_mode: service:bot
+    depends_on:
+      - bot
+
+volumes:
+  waha_sessions:
+  tailscale_state:
+
+networks:
+  botnet:
