@@ -51,6 +51,7 @@ export default async function handler(req, res) {
     const firstTime = await isFirstMessage('telegram', chatId);
     if (firstTime) {
       await sendTelegramMessage(TELEGRAM_BOT_TOKEN, chatId, GREETING_MESSAGE);
+      await appendToHistory('telegram', chatId, text, GREETING_MESSAGE);
       console.log(`👋 [Telegram] Perkenalan terkirim untuk ${chatId}`);
       return res.status(200).send('OK');
     }
