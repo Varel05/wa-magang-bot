@@ -406,7 +406,12 @@ body[data-theme="light"] {
 }
 
 @media (max-width: 420px) {
-  #faqTextarea, button { min-height: 44px; }
+  /* Target tap area 44px hanya untuk tombol aksi berbasis teks (bukan tombol
+     ikon berukuran tetap seperti theme-switch/logout/notif/back yang punya
+     bentuk dan ukurannya sendiri) supaya bentuknya tidak berubah di mobile. */
+  button:not(.theme-switch):not(.logout-btn):not(.notif-btn):not(.back-btn):not(.edit-name-btn) {
+    min-height: 44px;
+  }
   .faq-actions { @apply gap-2; }
   .faq-actions button { @apply min-w-full; }
 }
