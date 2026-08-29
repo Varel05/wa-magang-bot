@@ -1,7 +1,7 @@
 import { askGemini } from '../lib/askGemini.js';
 import { sendTelegramMessage, sendTelegramTyping } from '../lib/telegram.js';
 import { isFirstMessage } from '../lib/seenStore.js';
-import { getHistory, appendToHistory } from '../lib/historyStore.js';
+import { getHistory, appendToHistory, getRecentContext } from '../lib/historyStore.js';
 import { pushNotification } from '../lib/notifyStore.js';
 import { GREETING_MESSAGE } from '../lib/faq.js';
 
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
     let reply;
     try {
       const history = await getHistory('telegram', chatId);
-      reply = await askGemini(text, history);
+      reply = await askGemini(text, getRecentContext(history));
       await appendToHistory('telegram', chatId, text, reply);
     } catch (err) {
       console.error('❌ Error dari Gemini API:', err.message);

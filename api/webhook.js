@@ -1,6 +1,6 @@
 import { askGemini } from '../lib/askGemini.js';
 import { isFirstMessage } from '../lib/seenStore.js';
-import { getHistory, appendToHistory } from '../lib/historyStore.js';
+import { getHistory, appendToHistory, getRecentContext } from '../lib/historyStore.js';
 import { pushNotification } from '../lib/notifyStore.js';
 import { GREETING_MESSAGE } from '../lib/faq.js';
 import { sendWahaText, startTyping, stopTyping } from '../lib/waha.js';
@@ -105,7 +105,7 @@ export default async function handler(req, res) {
     let reply;
     try {
       const history = await getHistory('whatsapp', from);
-      reply = await askGemini(text, history);
+      reply = await askGemini(text, getRecentContext(history));
       await appendToHistory('whatsapp', from, text, reply);
     } catch (err) {
       console.error('❌ Error dari Gemini API:', err.message);
