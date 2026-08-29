@@ -440,10 +440,12 @@
           '<button class="back-btn" id="backToListBtn">← Kembali</button>' +
           '<div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + (conv.channel === 'whatsapp' ? 'WhatsApp' : 'Telegram') + ' · ' + escapeHTML(label) + '</div>' +
         '</div>' +
-        '<div style="display: flex; gap: 6px; align-items: center;">' +
+        '<div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">' +
           '<input type="text" id="searchMessageInput" placeholder="Cari pesan..." style="background: var(--bg); border: 1px solid var(--border); color: var(--text); font-size: 12px; padding: 6px 12px; border-radius: 6px; width: 160px; max-width: 100%;">' +
           '<button id="searchUpBtn" class="secondary" style="padding: 4px 8px; min-height: 28px; display: none;">↑</button>' +
           '<button id="searchDownBtn" class="secondary" style="padding: 4px 8px; min-height: 28px; display: none;">↓</button>' +
+          '<button id="downloadHistBtn" class="secondary" style="padding: 4px 10px; min-height: 28px;" title="Unduh riwayat percakapan ini">⬇ Unduh</button>' +
+          '<button id="deleteHistBtn" class="secondary" style="padding: 4px 10px; min-height: 28px; color: var(--danger); border-color: var(--danger);" title="Hapus riwayat percakapan ini dari database">🗑 Hapus</button>' +
         '</div>' +
       '</div>' +
       '<div id="chatMessages"></div>';
@@ -451,6 +453,9 @@
     panel.querySelector('#backToListBtn').addEventListener('click', () => {
       $('#riwayatView').classList.remove('mobile-chat-active');
     });
+
+    panel.querySelector('#downloadHistBtn').addEventListener('click', () => downloadHistory(conv, history));
+    panel.querySelector('#deleteHistBtn').addEventListener('click', () => deleteHistoryForConv(conv));
     
     const msgEl = panel.querySelector('#chatMessages');
     const searchInput = panel.querySelector('#searchMessageInput');
@@ -542,6 +547,80 @@
       if (currentMatchIndex >= matches.length) currentMatchIndex = 0;
       focusMatch();
     });
+  }
+
+  // ---------- Unduh & Hapus Riwayat ----------
+  function formatHistoryAsText(conv, history) {
+    const label = conv.name ? conv.name + ' (' + conv.id + ')' : conv.id;
+    const lines = [
+      'Riwayat Percakapan — ' + (conv.channel === 'whatsapp' ? 'WhatsApp' : 'Telegram') + ' · ' + label,
+      'Diunduh pada: ' + new Date().toLocaleString('id-ID'),
+      '='.repeat(50),
+      '',
+    ];
+    history.forEach((h) => {
+      lines.push('[' + (h.role === 'user' ? 'User' : 'Bot') + '] ' + h.text);
+      lines.push('');
+    });
+    return lines.join('\n');
+  }
+
+  function triggerBlobDownload(filename, content, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadHistory(conv, history) {
+    if (!history || !history.length) {
+      alert('Tidak ada riwayat pesan untuk diunduh.');
+      return;
+    }
+    const safeId = String(conv.id).replace(/[^a-zA-Z0-9_-]/g, '_');
+    const filename = 'riwayat_' + conv.channel + '_' + safeId + '_' + Date.now();
+
+    // Format teks (mudah dibaca) — bisa diganti .json kalau ingin data mentah.
+    const text = formatHistoryAsText(conv, history);
+    triggerBlobDownload(filename + '.txt', text, 'text/plain;charset=utf-8');
+  }
+
+  async function deleteHistoryForConv(conv) {
+    const label = conv.name ? conv.name + ' (' + conv.id + ')' : conv.id;
+    const confirmed = window.confirm(
+      'Hapus seluruh riwayat percakapan dengan "' + label + '" dari database?\n\n' +
+      'Pastikan sudah mengunduh riwayat ini jika masih diperlukan — tindakan ini tidak bisa dibatalkan.'
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await apiFetch(
+        '/api/admin/history?channel=' + encodeURIComponent(conv.channel) + '&id=' + encodeURIComponent(conv.id),
+        { method: 'DELETE' }
+      );
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || ('Server merespons status ' + res.status));
+      }
+
+      // Hapus dari daftar percakapan di sidebar (key riwayat sudah tidak ada di database)
+      state.conversations = state.conversations.filter(
+        (c) => !(c.channel === conv.channel && String(c.id) === String(conv.id))
+      );
+      state.activeConv = null;
+      renderConvList();
+
+      $('#chatPanel').innerHTML = '<div class="empty-state">Riwayat berhasil dihapus dari database.</div>';
+      $('#riwayatView').classList.remove('mobile-chat-active');
+    } catch (err) {
+      console.error('Gagal hapus riwayat:', err);
+      alert('Gagal hapus riwayat: ' + err.message);
+    }
   }
 
   // ---------- Edit FAQ ----------
