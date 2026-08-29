@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <title>MagangJogja Bot — Admin</title>
 <link rel="stylesheet" href="output.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 </head>
 <body>
 
@@ -444,7 +445,7 @@
           '<input type="text" id="searchMessageInput" placeholder="Cari pesan..." style="background: var(--bg); border: 1px solid var(--border); color: var(--text); font-size: 12px; padding: 6px 12px; border-radius: 6px; width: 160px; max-width: 100%;">' +
           '<button id="searchUpBtn" class="secondary" style="padding: 4px 8px; min-height: 28px; display: none;">↑</button>' +
           '<button id="searchDownBtn" class="secondary" style="padding: 4px 8px; min-height: 28px; display: none;">↓</button>' +
-          '<button id="downloadHistBtn" class="hist-action-btn" type="button" aria-label="Unduh riwayat" title="Unduh riwayat percakapan ini">' +
+          '<button id="downloadHistBtn" class="hist-action-btn" type="button" aria-label="Unduh riwayat" title="Unduh riwayat percakapan ini sebagai Excel">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 21h14"/></svg>' +
           '</button>' +
           '<button id="deleteHistBtn" class="hist-action-btn danger" type="button" aria-label="Hapus riwayat" title="Hapus riwayat percakapan ini dari database">' +
@@ -554,44 +555,45 @@
   }
 
   // ---------- Unduh & Hapus Riwayat ----------
-  function formatHistoryAsText(conv, history) {
-    const label = conv.name ? conv.name + ' (' + conv.id + ')' : conv.id;
-    const lines = [
-      'Riwayat Percakapan — ' + (conv.channel === 'whatsapp' ? 'WhatsApp' : 'Telegram') + ' · ' + label,
-      'Diunduh pada: ' + new Date().toLocaleString('id-ID'),
-      '='.repeat(50),
-      '',
-    ];
-    history.forEach((h) => {
-      lines.push('[' + (h.role === 'user' ? 'User' : 'Bot') + '] ' + h.text);
-      lines.push('');
-    });
-    return lines.join('\n');
-  }
-
-  function triggerBlobDownload(filename, content, mimeType) {
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
-
   function downloadHistory(conv, history) {
     if (!history || !history.length) {
       alert('Tidak ada riwayat pesan untuk diunduh.');
       return;
     }
-    const safeId = String(conv.id).replace(/[^a-zA-Z0-9_-]/g, '_');
-    const filename = 'riwayat_' + conv.channel + '_' + safeId + '_' + Date.now();
+    if (typeof XLSX === 'undefined') {
+      alert('Gagal memuat modul Excel. Pastikan koneksi internet aktif, lalu coba lagi.');
+      return;
+    }
 
-    // Format teks (mudah dibaca) — bisa diganti .json kalau ingin data mentah.
-    const text = formatHistoryAsText(conv, history);
-    triggerBlobDownload(filename + '.txt', text, 'text/plain;charset=utf-8');
+    const label = conv.name ? conv.name : '';
+    const channelLabel = conv.channel === 'whatsapp' ? 'WhatsApp' : 'Telegram';
+
+    // Baris data — nama kolom disesuaikan dengan konteks riwayat chat bot.
+    const rows = history.map((h, idx) => ({
+      'No': idx + 1,
+      'Saluran': channelLabel,
+      'Nomor/ID Kontak': conv.id,
+      'Nama Kontak': label,
+      'Pengirim': h.role === 'user' ? 'Kontak' : 'Bot',
+      'Isi Pesan': h.text,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    worksheet['!cols'] = [
+      { wch: 5 },   // No
+      { wch: 10 },  // Saluran
+      { wch: 18 },  // Nomor/ID Kontak
+      { wch: 18 },  // Nama Kontak
+      { wch: 10 },  // Pengirim
+      { wch: 60 },  // Isi Pesan
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Riwayat Chat');
+
+    const safeId = String(conv.id).replace(/[^a-zA-Z0-9_-]/g, '_');
+    const filename = 'riwayat_' + conv.channel + '_' + safeId + '_' + Date.now() + '.xlsx';
+    XLSX.writeFile(workbook, filename);
   }
 
   async function deleteHistoryForConv(conv) {
