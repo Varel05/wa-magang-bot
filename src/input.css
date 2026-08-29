@@ -205,15 +205,19 @@ body[data-theme="light"] {
   }
   .edit-name-btn:hover { color: var(--text); border-color: var(--accent); }
 
-  /* Tombol aksi kecil di header chat (Unduh/Hapus riwayat), mengikuti
-     pola .edit-name-btn agar konsisten dengan token desain Tailwind
-     (spacing/radius/typography) alih-alih inline style piksel manual. */
+  /* Tombol aksi kecil di header chat (Unduh/Hapus riwayat) — icon-only,
+     mengikuti gaya ikon header (.logout-btn/.notif-btn: kotak, ikon
+     tengah, border tipis) supaya konsisten dengan token desain Tailwind. */
   .hist-action-btn {
-    @apply bg-transparent border px-2.5 py-1 rounded text-xs font-medium flex-shrink-0 shadow-none transition-colors duration-150;
+    @apply inline-flex items-center justify-center border rounded-md shadow-none transition-colors duration-150;
+    width: 28px;
+    height: 28px;
+    padding: 0;
     border-color: var(--border);
     color: var(--text-dim);
-    font-family: var(--font-body);
+    background: transparent;
   }
+  .hist-action-btn svg { @apply flex-shrink-0; }
   .hist-action-btn:hover { color: var(--text); border-color: var(--accent); }
   .hist-action-btn.danger { color: var(--danger); border-color: var(--danger); }
   .hist-action-btn.danger:hover {

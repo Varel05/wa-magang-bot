@@ -444,8 +444,12 @@
           '<input type="text" id="searchMessageInput" placeholder="Cari pesan..." style="background: var(--bg); border: 1px solid var(--border); color: var(--text); font-size: 12px; padding: 6px 12px; border-radius: 6px; width: 160px; max-width: 100%;">' +
           '<button id="searchUpBtn" class="secondary" style="padding: 4px 8px; min-height: 28px; display: none;">↑</button>' +
           '<button id="searchDownBtn" class="secondary" style="padding: 4px 8px; min-height: 28px; display: none;">↓</button>' +
-          '<button id="downloadHistBtn" class="hist-action-btn" title="Unduh riwayat percakapan ini">⬇ Unduh</button>' +
-          '<button id="deleteHistBtn" class="hist-action-btn danger" title="Hapus riwayat percakapan ini dari database">🗑 Hapus</button>' +
+          '<button id="downloadHistBtn" class="hist-action-btn" type="button" aria-label="Unduh riwayat" title="Unduh riwayat percakapan ini">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 21h14"/></svg>' +
+          '</button>' +
+          '<button id="deleteHistBtn" class="hist-action-btn danger" type="button" aria-label="Hapus riwayat" title="Hapus riwayat percakapan ini dari database">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M4 7h16"/><path d="M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/><path d="M18 7l-.85 12.14A2 2 0 0 1 15.16 21H8.84a2 2 0 0 1-1.99-1.86L6 7"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>' +
+          '</button>' +
         '</div>' +
       '</div>' +
       '<div id="chatMessages"></div>';
